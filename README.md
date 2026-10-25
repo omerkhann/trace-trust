@@ -28,7 +28,7 @@ uv pip install --python .venv -r requirements.txt
 ```
 
 `run_baseline` downloads the dataset from Hugging Face, parses every trace, builds features and
-folds, runs the baselines with 5-fold cross-validation, and writes `results/`. Each stage caches
+folds, runs the baselines (5-fold CV on dev, then the held-out test set), and writes `results/`. Each stage caches
 its output in `data/`; pass `--refresh` to rebuild.
 
 ### LLM-judge baseline (optional)
@@ -65,7 +65,7 @@ features, because they contain the label. Only the trajectory and the final git 
 
 ```
 HF Hub -> loader (light columns) -> parser (streams row groups -> Trace) -> features (RunFeatures, TaskFeatures)
-       -> splits (GroupKFold by task + 50-run judge sample) -> baselines -> metrics -> results/
+       -> splits (fixed dev/test by task, GroupKFold on dev, 50-run judge sample) -> baselines -> metrics -> results/
 ```
 
 | module | role |
@@ -74,7 +74,7 @@ HF Hub -> loader (light columns) -> parser (streams row groups -> Trace) -> feat
 | [src/data/parser.py](src/data/parser.py) | OpenHands messages -> `Trace` of typed `Step`s (tool, command, path, exit code, error) |
 | [src/schema.py](src/schema.py) | Pydantic contracts passed between every stage |
 | [src/features.py](src/features.py) | telemetry features per run + pre-execution task features |
-| [src/eval/splits.py](src/eval/splits.py) | 5-fold GroupKFold on `instance_id`, fixed judge sample |
+| [src/eval/splits.py](src/eval/splits.py) | fixed dev/test split by task, 5-fold GroupKFold on dev, judge sample -> [data/splits.csv](data/splits.csv) |
 | [src/eval/metrics.py](src/eval/metrics.py) | pooled AUROC, within-task AUROC, Brier, ECE |
 | [src/baselines/tabular.py](src/baselines/tabular.py) | length-only, prompt-only, telemetry LogReg / GBM |
 | [src/llm/provider.py](src/llm/provider.py) | `LLMProvider` interface: Ollama + OpenAI-compatible free tiers |
@@ -84,8 +84,14 @@ HF Hub -> loader (light columns) -> parser (streams row groups -> Trace) -> feat
 
 ## Evaluation protocol
 
-- **Splits:** `GroupKFold(5)` on `instance_id`, so no task is in both train and test. All methods share the folds.
-- **Pooled AUROC:** over all out-of-fold predictions.
+- **Splits** ([data/splits.csv](data/splits.csv), committed, built by `python -m src.eval.splits --rebuild`):
+  20% of tasks (488 tasks, 1,148 runs) are a held-out **test** set, used only for final numbers.
+  Mixed tasks are split separately so test gets its share of them (38 of 188). The other 80%
+  (**dev**) is split with `GroupKFold(5)` on `instance_id`; model selection, calibration fitting and
+  threshold tuning use dev only. No task appears in more than one fold or in both dev and test.
+  All methods share the same assignment.
+- **Reported numbers:** out-of-fold on dev, and on test after refitting on all of dev.
+- **Pooled AUROC:** over all predictions in the evaluation set.
 - **Within-task AUROC:** over tasks with both resolved and unresolved runs, the share of same-task
   (pass, fail) pairs ranked correctly. It removes task difficulty and measures what best-of-n
   selection needs (proposal Gap 1).
@@ -93,14 +99,23 @@ HF Hub -> loader (light columns) -> parser (streams row groups -> Trace) -> feat
 
 ## Initial results
 
-Out-of-fold, all 6,055 runs (from [results/metrics.md](results/metrics.md)):
+Held-out test set, 1,148 runs, 38 mixed tasks / 195 same-task pairs (from [results/metrics.md](results/metrics.md)):
 
 | method | pooled AUROC | within-task AUROC | Brier | ECE |
 |---|---|---|---|---|
-| length_only | 0.702 | 0.809 | 0.0724 | 0.0188 |
-| prompt_only | 0.640 | 0.500 | 0.0734 | 0.0196 |
-| telemetry_lr | **0.839** | **0.854** | **0.0654** | **0.0049** |
-| telemetry_gbm | **0.839** | 0.844 | 0.0670 | 0.0202 |
+| length_only | 0.695 | 0.733 | 0.0703 | 0.0368 |
+| prompt_only | 0.657 | 0.500 | 0.0699 | 0.0294 |
+| telemetry_lr | 0.812 | **0.764** | **0.0657** | **0.0190** |
+| telemetry_gbm | **0.835** | 0.749 | 0.0661 | 0.0238 |
+
+Dev, out-of-fold, 4,907 runs, 150 mixed tasks / 1,199 pairs:
+
+| method | pooled AUROC | within-task AUROC | Brier | ECE |
+|---|---|---|---|---|
+| length_only | 0.703 | 0.818 | 0.0729 | 0.0166 |
+| prompt_only | 0.638 | 0.500 | 0.0740 | 0.0140 |
+| telemetry_lr | **0.844** | **0.865** | **0.0654** | **0.0094** |
+| telemetry_gbm | 0.842 | 0.847 | 0.0662 | 0.0216 |
 
 ![Reliability diagram](results/reliability.png)
 
@@ -109,11 +124,12 @@ Observations so far:
 - Telemetry features beat both simple baselines on discrimination and calibration. The strongest
   signals ([results/metrics.json](results/metrics.json), `telemetry_lr_coefficients`) are an empty
   final patch (strongly negative), the number of distinct tools used, run length and patch size.
-- `prompt_only` reaches 0.64 pooled AUROC from task difficulty alone, yet 0.5 within-task by
+- `prompt_only` reaches 0.64 to 0.66 pooled AUROC from task difficulty alone, yet 0.5 within-task by
   construction. Pooled AUROC alone overstates what a predictor knows about an individual run.
-- On this dataset within-task AUROC is not lower than pooled, unlike the gap the proposal
-  hypothesises for SWE-bench (H1). Most tasks here have 1 to 3 runs and only 188 are mixed, so this
-  needs re-testing on the k = 16 evaluation rollouts.
+- H1 (pooled AUROC overstates within-task AUROC) is not settled. On dev, within-task AUROC is
+  higher than pooled; on test it is lower (0.76 vs 0.81 for `telemetry_lr`). Test has only 38 mixed
+  tasks and 195 pairs, so the gap is within noise. Most tasks have 1 to 3 runs, so this needs
+  re-testing with confidence intervals and on the k = 16 evaluation rollouts.
 - On the label-balanced 50-run judge sample, every model's Brier and ECE degrade sharply (ECE about
   0.4) while its ranking holds. That is prior shift: models fit to an 8% base rate are miscalibrated
   on a 50% one, the same problem the proposal attributes to the 50/50-trained SWE-Gym verifier.
@@ -121,14 +137,15 @@ Observations so far:
 ### Zero-shot LLM judge (50-run sample)
 
 Qwen2.5-Coder-7B via Ollama, 0 parse failures, about 10 s per run on an RTX 4050. Every method
-scored on the same 50 runs (25 tasks, one resolved and one failed run each):
+scored on the same 50 runs (25 test tasks, one resolved and one failed run each; the trained
+models are fit on dev):
 
 | method | pooled AUROC | within-task AUROC | Brier | ECE |
 |---|---|---|---|---|
-| length_only | 0.752 | 0.720 | 0.3954 | 0.4206 |
-| prompt_only | 0.500 | 0.500 | 0.4218 | 0.4120 |
-| telemetry_lr | 0.789 | **0.800** | 0.3727 | 0.3989 |
-| telemetry_gbm | **0.808** | **0.800** | 0.3597 | 0.3921 |
+| length_only | 0.744 | 0.680 | 0.3946 | 0.4196 |
+| prompt_only | 0.500 | 0.500 | 0.4195 | 0.4090 |
+| telemetry_lr | 0.782 | **0.800** | 0.3751 | 0.3988 |
+| telemetry_gbm | **0.834** | 0.760 | 0.3468 | 0.3818 |
 | llm_judge | 0.750 | 0.740 | **0.2594** | **0.2410** |
 
 - The judge is right on 35 of 50 runs (70%) but ranks runs worse than the telemetry models, at
@@ -139,6 +156,13 @@ scored on the same 50 runs (25 tasks, one resolved and one failed run each):
   is not anchored to any base rate, while the trained models are calibrated to the real 8%. It calls
   7 of 25 failed runs PASS; at the full dataset's 92% failure rate that would label roughly 3 in 10
   runs PASS when only 8% actually succeed.
+
+## Changes since Phase 1
+
+- **Held-out test split (Oct 25).** Phase 1 reported 5-fold out-of-fold numbers over all runs, with
+  no data kept back from tuning. Phase 2 tunes calibrators and alarm thresholds, so 20% of tasks
+  are now a fixed test set and the folds cover dev only. The assignment is committed as
+  `data/splits.csv`. The 50-run judge sample is unchanged; its tasks are pinned to test.
 
 ## Roadmap (Phase 2+)
 

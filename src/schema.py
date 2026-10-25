@@ -3,7 +3,7 @@
 Trace / Step   : normalised telemetry for one agent run (parsed from OpenHands messages)
 RunFeatures    : fixed-width feature vector extracted from a Trace
 JudgeVerdict   : validated structured output of the LLM-as-judge
-Prediction     : one method's probability for one run (out-of-fold)
+Prediction     : one method's probability for one run (out-of-fold on dev, or held out on test)
 EvalReport     : metrics for one method
 """
 from __future__ import annotations
@@ -117,14 +117,14 @@ class Prediction(BaseModel):
     uid: str
     instance_id: str
     method: str
-    fold: int
+    fold: int                     # dev fold, -1 for test runs
     p_success: float = Field(ge=0.0, le=1.0)
     label: bool
 
 
 class EvalReport(BaseModel):
     method: str
-    eval_set: str = "all"         # "all" (out-of-fold, every run) or "judge_sample"
+    eval_set: str = "dev"         # "dev" (out-of-fold), "test" (held out) or "judge_sample" (subset of test)
     n_runs: int
     pooled_auroc: Optional[float]
     within_task_auroc: Optional[float]

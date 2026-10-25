@@ -62,7 +62,7 @@ def reliability_plot(preds: dict[str, pd.DataFrame], path=None) -> None:
             s.set_visible(False)
         ax.set_xlabel("mean predicted p(resolved)", color=MUTED, fontsize=8)
     axes[0].set_ylabel("observed resolve rate", color=MUTED, fontsize=8)
-    fig.suptitle("Reliability (15 equal-mass bins, out-of-fold); dashed = perfect calibration",
+    fig.suptitle("Reliability on held-out test (15 equal-mass bins); dashed = perfect calibration",
                  color=INK, fontsize=10, x=0.01, ha="left")
     fig.tight_layout()
     fig.savefig(path, dpi=150, facecolor="white")

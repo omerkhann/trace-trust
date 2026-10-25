@@ -37,7 +37,7 @@ signal, rank candidate runs (best-of-n), or flag runs that need human review.
                           │                                   │
                           │                       data/features.parquet (schema.RunFeatures)
                           ▼                                   │
-          src/eval/splits.py   GroupKFold(instance_id) ──► data/eval_splits.parquet
+          src/eval/splits.py   dev/test by task, GroupKFold on dev ──► data/splits.csv
                                                               │
              ┌───────────────────────────────────────┼───────────────────────┐
              ▼                                       ▼                       ▼
@@ -111,20 +111,22 @@ construction. It measures how much pooled AUROC comes from task difficulty alone
 
 ## Evaluation protocol
 
-- **Splits:** `GroupKFold(n_splits=5)` on `instance_id`, so no task appears in both train and test.
-  All methods use the same fold assignment.
-- **Pooled AUROC:** over all out-of-fold predictions.
+- **Splits:** 20% of tasks are a fixed held-out test set (mixed and non-mixed tasks split
+  separately), touched only for final numbers. The remaining dev tasks use `GroupKFold(n_splits=5)`
+  on `instance_id`; all tuning happens on dev. The assignment lives in `data/splits.csv`
+  (committed) and every method uses it.
+- **Pooled AUROC:** over all predictions in the evaluation set (dev out-of-fold, or test).
 - **Within-task AUROC** (arXiv 2610.05572): computed only over *mixed* tasks (those with both
   resolved and unresolved runs). Each task's AUROC is weighted by `n_pass × n_fail`, which equals
   the pairwise accuracy over all same-task (pass, fail) pairs. This measures whether the predictor
   can **rank runs of the same task**, which is what best-of-n selection needs and what pooled AUROC
   conflates with task difficulty.
 - **Calibration:** Brier score, expected calibration error over 15 equal-mass bins, reliability diagram.
-- **Initial evaluation set:** the out-of-fold predictions on all 6,055 runs, plus a fixed 50-run
-  sample for the LLM judge: 25 mixed tasks drawn with a fixed seed, one resolved and one
-  unresolved run each, so it is label-balanced and yields 25 same-task pairs. Every method is also
-  scored on this sample. Its ids are stored in `data/eval_splits.parquet` and
-  `results/llm_judge_sample.json` so later phases reuse the same set.
+- **Evaluation sets:** dev out-of-fold (4,907 runs), held-out test (1,148 runs), and a fixed
+  50-run sample of test for the LLM judge: 25 mixed test tasks, one resolved and one unresolved
+  run each, so it is label-balanced and yields 25 same-task pairs. Every method is also scored on
+  this sample. Its ids are stored in `data/splits.csv` and `results/llm_judge_sample.json` so
+  later phases reuse the same set.
 
 ## Constraints
 

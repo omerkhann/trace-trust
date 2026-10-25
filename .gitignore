@@ -1,5 +1,6 @@
 # Data & secrets
-/data/
+/data/*
+!/data/splits.csv
 .env
 # Python
 .venv/

@@ -1,11 +1,11 @@
-"""Cross-validated tabular baselines. Each returns out-of-fold schema.Prediction rows.
+"""Tabular baselines. Each returns schema.Prediction rows: out-of-fold on dev, or held-out on test.
 
   length_only     LogReg on log(n_steps), log(total_tokens)        (B.10 baseline 2)
   prompt_only     LogReg on issue features + repo one-hot           (B.10 baseline 3, task difficulty)
   telemetry_lr    LogReg on all RunFeatures (log1p, standardised)   (proposed, Phase 1 subset)
   telemetry_gbm   HistGradientBoosting on all RunFeatures           (proposed, Phase 1 subset)
 
-All use the fold column from data/eval_splits.parquet, so every method sees the same splits.
+All use the split and fold columns from data/splits.csv, so every method sees the same splits.
 """
 from __future__ import annotations
 
@@ -51,27 +51,40 @@ METHODS: dict[str, tuple[Callable[[], Pipeline], list[str]]] = {
 }
 
 
+def _xy(data: pd.DataFrame, cols: list[str]) -> tuple[pd.DataFrame, np.ndarray]:
+    X = data[cols].astype({c: int for c in cols if data[c].dtype == bool})
+    return X, data["resolved"].to_numpy(bool)
+
+
+def _rows(data: pd.DataFrame, method: str, p: np.ndarray) -> pd.DataFrame:
+    return pd.DataFrame({"uid": data["uid"], "instance_id": data["instance_id"], "method": method,
+                         "fold": data["fold"], "p_success": p, "label": data["resolved"].to_numpy(bool)})
+
+
 def cv_predict(data: pd.DataFrame, method: str) -> pd.DataFrame:
-    """data: features merged with splits (uid, instance_id, resolved, fold, ...)."""
+    """Out-of-fold predictions on dev runs. data: features merged with splits."""
     make, cols = METHODS[method]
-    X = data[cols].copy()
-    for c in X.columns:
-        if X[c].dtype == bool:
-            X[c] = X[c].astype(int)
-    y = data["resolved"].to_numpy(bool)
-    p = np.zeros(len(data))
-    for k in sorted(data["fold"].unique()):
-        test = (data["fold"] == k).to_numpy()
+    dev = data[data["split"] == "dev"].reset_index(drop=True)
+    X, y = _xy(dev, cols)
+    p = np.zeros(len(dev))
+    for k in sorted(dev["fold"].unique()):
+        test = (dev["fold"] == k).to_numpy()
         model = make().fit(X[~test], y[~test])
         p[test] = model.predict_proba(X[test])[:, 1]
-    return pd.DataFrame({"uid": data["uid"], "instance_id": data["instance_id"], "method": method,
-                         "fold": data["fold"], "p_success": p, "label": y})
+    return _rows(dev, method, p)
+
+
+def holdout_predict(data: pd.DataFrame, method: str) -> pd.DataFrame:
+    """Fit on all dev runs, predict the held-out test runs."""
+    make, cols = METHODS[method]
+    dev, test = data[data["split"] == "dev"], data[data["split"] == "test"].reset_index(drop=True)
+    model = make().fit(*_xy(dev, cols))
+    return _rows(test, method, model.predict_proba(_xy(test, cols)[0])[:, 1])
 
 
 def coefficients(data: pd.DataFrame, method: str = "telemetry_lr") -> pd.Series:
-    """Standardised LogReg coefficients fit on all runs, for the explainability readout (Gap 3)."""
+    """Standardised LogReg coefficients fit on dev runs, for the explainability readout (Gap 3)."""
     make, cols = METHODS[method]
-    X = data[cols].astype({c: int for c in cols if data[c].dtype == bool})
-    model = make().fit(X, data["resolved"].to_numpy(bool))
+    model = make().fit(*_xy(data[data["split"] == "dev"], cols))
     names = model[0].get_feature_names_out()
     return pd.Series(model[-1].coef_[0], index=[n.split("__", 1)[1] for n in names]).sort_values(key=abs, ascending=False)

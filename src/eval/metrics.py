@@ -59,7 +59,7 @@ def reliability_curve(y: np.ndarray, p: np.ndarray, n_bins: int = N_BINS) -> pd.
             .agg(mean_p=("p", "mean"), frac_pos=("y", "mean"), n=("y", "size")).reset_index())
 
 
-def evaluate(preds: pd.DataFrame, method: str, eval_set: str = "all") -> EvalReport:
+def evaluate(preds: pd.DataFrame, method: str, eval_set: str = "dev") -> EvalReport:
     """preds: rows of schema.Prediction for one method."""
     y = preds["label"].to_numpy(bool)
     p = preds["p_success"].to_numpy(float)

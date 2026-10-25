@@ -12,7 +12,8 @@ Course project (AI4015, G2-09): predict SWE agent run success from OpenHands exe
 ## Rules
 - Never use `test_result.report`, `test_result.test_output`, or `apply_patch_output` as features: they leak the label.
 - Don't load the whole `messages` column. Stream row groups via `src/data/parser.iter_traces`.
-- All CV uses the fold assignment in `data/eval_splits.parquet` (GroupKFold by `instance_id`).
+- All evaluation uses `data/splits.csv`: a fixed held-out test set (never used for tuning) and
+  GroupKFold by `instance_id` on dev. Don't rebuild it casually; every reported number depends on it.
 - Module boundaries pass the Pydantic models in `src/schema.py`.
 - `data/` and `.env` are gitignored. `results/*.json|png` are committed.
 - Hardware: RTX 4050 6 GB, 16 GB RAM, no paid APIs.
