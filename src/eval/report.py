@@ -36,10 +36,11 @@ def _gap(r: EvalReport) -> str:
     return _fmt(r.pooled_auroc - r.within_task_auroc, ci=r.auroc_gap_ci)
 
 
-def write_metrics(reports: list[EvalReport], extra: dict) -> None:
+def write_metrics(reports: list[EvalReport], extra: dict, name: str = "metrics") -> None:
+    """-> results/<name>.json and results/<name>.md"""
     config.RESULTS_DIR.mkdir(exist_ok=True)
     payload = {"generated": date.today().isoformat(), **extra, "reports": [r.model_dump() for r in reports]}
-    (config.RESULTS_DIR / "metrics.json").write_text(json.dumps(payload, indent=1))
+    (config.RESULTS_DIR / f"{name}.json").write_text(json.dumps(payload, indent=1))
 
     seeds = extra.get("seeds")
     lines = [f"Point estimates are the mean over seeds {seeds} (± std across seeds, shown only where non-zero). "
@@ -56,7 +57,7 @@ def write_metrics(reports: list[EvalReport], extra: dict) -> None:
                   f"| {_fmt(r.brier, r.brier_std, digits=4)} | {_fmt(r.ece, r.ece_std, digits=4)} |"
                   for r in rs]
         lines.append("")
-    (config.RESULTS_DIR / "metrics.md").write_text("\n".join(lines), encoding="utf-8")
+    (config.RESULTS_DIR / f"{name}.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def reliability_plot(preds: dict[str, pd.DataFrame], path=None) -> None:

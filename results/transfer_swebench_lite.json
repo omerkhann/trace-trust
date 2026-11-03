@@ -1,0 +1,590 @@
+{
+ "generated": "2026-11-03",
+ "seeds": [
+  42,
+  43,
+  44
+ ],
+ "n_boot": 1000,
+ "trained_on": "SWE-Gym dev runs",
+ "runs": {
+  "claude35_v2.2": {
+   "folder": "claude-3-5-sonnet-20241022_maxiter_100_N_v2.2-no-hint",
+   "policy": "claude-3-5-sonnet-20241022",
+   "version": "v2.2"
+  },
+  "claude35_v2.1": {
+   "folder": "claude-3-5-sonnet-20241022_maxiter_100_N_v2.1-no-hint",
+   "policy": "claude-3-5-sonnet-20241022",
+   "version": "v2.1"
+  },
+  "claude35_v1.9": {
+   "folder": "claude-3-5-sonnet-20241022_maxiter_30_N_v1.9-no-hint",
+   "policy": "claude-3-5-sonnet-20241022",
+   "version": "v1.9"
+  },
+  "gpt4o_v1.9": {
+   "folder": "gpt-4o-2024-05-13_maxiter_30_N_v1.9-no-hint-eval-24sep",
+   "policy": "gpt-4o-2024-05-13",
+   "version": "v1.9"
+  }
+ },
+ "resolved_rate_by_run": {
+  "claude35_v1.9": 0.3067,
+  "claude35_v2.1": 0.42,
+  "claude35_v2.2": 0.4348,
+  "gpt4o_v1.9": 0.2133
+ },
+ "reports": [
+  {
+   "method": "length_only",
+   "eval_set": "lite_all",
+   "n_runs": 1199,
+   "pooled_auroc": 0.5909253525123056,
+   "within_task_auroc": 0.6658415841584159,
+   "n_mixed_tasks": 124,
+   "n_pairs": 404,
+   "brier": 0.24164404299593367,
+   "ece": 0.13141145957889663,
+   "base_rate": 0.34361968306922436,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5564850746208299,
+    0.6272842620299729
+   ],
+   "within_task_auroc_ci": [
+    0.6014927611582147,
+    0.723658575635238
+   ],
+   "auroc_gap_ci": [
+    -0.1264652525655852,
+    -0.02415294447655426
+   ]
+  },
+  {
+   "method": "empty_patch",
+   "eval_set": "lite_all",
+   "n_runs": 1199,
+   "pooled_auroc": 0.525412960609911,
+   "within_task_auroc": 0.5445544554455446,
+   "n_mixed_tasks": 124,
+   "n_pairs": 404,
+   "brier": 0.2686254075923489,
+   "ece": 0.21347611993638535,
+   "base_rate": 0.34361968306922436,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 3.3993498887762956e-17,
+   "pooled_auroc_ci": [
+    0.5178802034058657,
+    0.5328871360653805
+   ],
+   "within_task_auroc_ci": [
+    0.5238649278327083,
+    0.567602811051957
+   ],
+   "auroc_gap_ci": [
+    -0.03874285442969945,
+    5.464793975617777e-06
+   ]
+  },
+  {
+   "method": "prompt_only",
+   "eval_set": "lite_all",
+   "n_runs": 1199,
+   "pooled_auroc": 0.43887011016395056,
+   "within_task_auroc": 0.4975247524752475,
+   "n_mixed_tasks": 124,
+   "n_pairs": 404,
+   "brier": 0.3066783582028769,
+   "ece": 0.2801063317410451,
+   "base_rate": 0.34361968306922436,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.3859103419157727,
+    0.4925354832563436
+   ],
+   "within_task_auroc_ci": [
+    0.49159604853177225,
+    0.5
+   ],
+   "auroc_gap_ci": [
+    -0.11163434527757995,
+    -0.004501254926665246
+   ]
+  },
+  {
+   "method": "telemetry_lr",
+   "eval_set": "lite_all",
+   "n_runs": 1199,
+   "pooled_auroc": 0.6549697141658751,
+   "within_task_auroc": 0.6955445544554455,
+   "n_mixed_tasks": 124,
+   "n_pairs": 404,
+   "brier": 0.26137216754938425,
+   "ece": 0.21781495854058433,
+   "base_rate": 0.34361968306922436,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 3.3993498887762956e-17,
+   "pooled_auroc_ci": [
+    0.617236679613334,
+    0.6903833296834463
+   ],
+   "within_task_auroc_ci": [
+    0.6323303584332997,
+    0.755631849077542
+   ],
+   "auroc_gap_ci": [
+    -0.0965769041665716,
+    0.011829699156891704
+   ]
+  },
+  {
+   "method": "telemetry_gbm",
+   "eval_set": "lite_all",
+   "n_runs": 1199,
+   "pooled_auroc": 0.6360534042264469,
+   "within_task_auroc": 0.7202970297029703,
+   "n_mixed_tasks": 124,
+   "n_pairs": 404,
+   "brier": 0.27542538631089303,
+   "ece": 0.240059611080685,
+   "base_rate": 0.34361968306922436,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5978654546214428,
+    0.6697616584190904
+   ],
+   "within_task_auroc_ci": [
+    0.6658037212139698,
+    0.7738927738927739
+   ],
+   "auroc_gap_ci": [
+    -0.13610894895007772,
+    -0.033838372889165434
+   ]
+  },
+  {
+   "method": "length_only",
+   "eval_set": "lite_claude",
+   "n_runs": 899,
+   "pooled_auroc": 0.601132736716941,
+   "within_task_auroc": 0.6962025316455697,
+   "n_mixed_tasks": 79,
+   "n_pairs": 158,
+   "brier": 0.25382611694862406,
+   "ece": 0.14694890260937243,
+   "base_rate": 0.3870967741935484,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5615694675596646,
+    0.6414449437149637
+   ],
+   "within_task_auroc_ci": [
+    0.6153846153846154,
+    0.777797619047619
+   ],
+   "auroc_gap_ci": [
+    -0.1671302740349933,
+    -0.018904804684798663
+   ]
+  },
+  {
+   "method": "empty_patch",
+   "eval_set": "lite_claude",
+   "n_runs": 899,
+   "pooled_auroc": 0.5081669691470054,
+   "within_task_auroc": 0.509493670886076,
+   "n_mixed_tasks": 79,
+   "n_pairs": 158,
+   "brier": 0.3008206164745902,
+   "ece": 0.25382649721780903,
+   "base_rate": 0.3870967741935484,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5028034772620478,
+    0.5140716248711783
+   ],
+   "within_task_auroc_ci": [
+    0.5,
+    0.523940175596001
+   ],
+   "auroc_gap_ci": [
+    -0.01412309414120898,
+    0.009452446215016886
+   ]
+  },
+  {
+   "method": "prompt_only",
+   "eval_set": "lite_claude",
+   "n_runs": 899,
+   "pooled_auroc": 0.4460594113106786,
+   "within_task_auroc": 0.49683544303797467,
+   "n_mixed_tasks": 79,
+   "n_pairs": 158,
+   "brier": 0.3443158025249325,
+   "ece": 0.32359847986152385,
+   "base_rate": 0.3870967741935484,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.3880904663245164,
+    0.5040900932953827
+   ],
+   "within_task_auroc_ci": [
+    0.48912643861892585,
+    0.5
+   ],
+   "auroc_gap_ci": [
+    -0.10863312531030753,
+    0.007851125155842423
+   ]
+  },
+  {
+   "method": "telemetry_lr",
+   "eval_set": "lite_claude",
+   "n_runs": 899,
+   "pooled_auroc": 0.6234224085779252,
+   "within_task_auroc": 0.5886075949367089,
+   "n_mixed_tasks": 79,
+   "n_pairs": 158,
+   "brier": 0.28382750823387265,
+   "ece": 0.23491487471821584,
+   "base_rate": 0.3870967741935484,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 3.3993498887762956e-17,
+   "pooled_auroc_ci": [
+    0.5760901841315498,
+    0.6644559292681589
+   ],
+   "within_task_auroc_ci": [
+    0.4934094699777613,
+    0.6818181818181818
+   ],
+   "auroc_gap_ci": [
+    -0.0516051691811657,
+    0.12993484192365767
+   ]
+  },
+  {
+   "method": "telemetry_gbm",
+   "eval_set": "lite_claude",
+   "n_runs": 899,
+   "pooled_auroc": 0.6044600204434988,
+   "within_task_auroc": 0.6645569620253164,
+   "n_mixed_tasks": 79,
+   "n_pairs": 158,
+   "brier": 0.3001501716556385,
+   "ece": 0.2547477937391853,
+   "base_rate": 0.3870967741935484,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5577564848397404,
+    0.6490103927178595
+   ],
+   "within_task_auroc_ci": [
+    0.5759493670886076,
+    0.7434330872913992
+   ],
+   "auroc_gap_ci": [
+    -0.13923249414628916,
+    0.03004037873248395
+   ]
+  },
+  {
+   "method": "length_only",
+   "eval_set": "lite_claude_v2",
+   "n_runs": 599,
+   "pooled_auroc": 0.6184402332361516,
+   "within_task_auroc": 0.45,
+   "n_mixed_tasks": 40,
+   "n_pairs": 40,
+   "brier": 0.2561734597245616,
+   "ece": 0.13862237067323122,
+   "base_rate": 0.4273789649415693,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5611499890524003,
+    0.6792343994147712
+   ],
+   "within_task_auroc_ci": [
+    0.30952380952380953,
+    0.6153846153846154
+   ],
+   "auroc_gap_ci": [
+    -0.00222339983287902,
+    0.3221234492346776
+   ]
+  },
+  {
+   "method": "empty_patch",
+   "eval_set": "lite_claude_v2",
+   "n_runs": 599,
+   "pooled_auroc": 0.5102040816326531,
+   "within_task_auroc": 0.5125,
+   "n_mixed_tasks": 40,
+   "n_pairs": 40,
+   "brier": 0.33022761833372855,
+   "ece": 0.2943329837309763,
+   "base_rate": 0.4273789649415693,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5028087920561484,
+    0.5192321958456972
+   ],
+   "within_task_auroc_ci": [
+    0.5,
+    0.5416964285714285
+   ],
+   "auroc_gap_ci": [
+    -0.03051785358019507,
+    0.014881557297715783
+   ]
+  },
+  {
+   "method": "prompt_only",
+   "eval_set": "lite_claude_v2",
+   "n_runs": 599,
+   "pooled_auroc": 0.4362586552478134,
+   "within_task_auroc": 0.5,
+   "n_mixed_tasks": 40,
+   "n_pairs": 40,
+   "brier": 0.37993429285768854,
+   "ece": 0.36391080973874274,
+   "base_rate": 0.4273789649415693,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 6.798699777552591e-17,
+   "pooled_auroc_ci": [
+    0.37523183537513644,
+    0.49582150325686686
+   ],
+   "within_task_auroc_ci": [
+    0.5,
+    0.5
+   ],
+   "auroc_gap_ci": [
+    -0.12476816462486358,
+    -0.004178496743133153
+   ]
+  },
+  {
+   "method": "telemetry_lr",
+   "eval_set": "lite_claude_v2",
+   "n_runs": 599,
+   "pooled_auroc": 0.6158094934402333,
+   "within_task_auroc": 0.55,
+   "n_mixed_tasks": 40,
+   "n_pairs": 40,
+   "brier": 0.30905657635551964,
+   "ece": 0.26971144531229596,
+   "base_rate": 0.4273789649415693,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5582388575831966,
+    0.6665530441894698
+   ],
+   "within_task_auroc_ci": [
+    0.3939393939393939,
+    0.7105263157894737
+   ],
+   "auroc_gap_ci": [
+    -0.09268197623721725,
+    0.2140934451704969
+   ]
+  },
+  {
+   "method": "telemetry_gbm",
+   "eval_set": "lite_claude_v2",
+   "n_runs": 599,
+   "pooled_auroc": 0.578944970845481,
+   "within_task_auroc": 0.55,
+   "n_mixed_tasks": 40,
+   "n_pairs": 40,
+   "brier": 0.330049223670197,
+   "ece": 0.28565625285618906,
+   "base_rate": 0.4273789649415693,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5253836714336018,
+    0.6330716164653373
+   ],
+   "within_task_auroc_ci": [
+    0.3888605442176871,
+    0.708366935483871
+   ],
+   "auroc_gap_ci": [
+    -0.12444564619254671,
+    0.17943493686893502
+   ]
+  },
+  {
+   "method": "length_only",
+   "eval_set": "lite_gpt4o",
+   "n_runs": 300,
+   "pooled_auroc": 0.4683527542372882,
+   "within_task_auroc": null,
+   "n_mixed_tasks": 0,
+   "n_pairs": 0,
+   "brier": 0.2051384280510382,
+   "ece": 0.1509524226633201,
+   "base_rate": 0.21333333333333335,
+   "n_seeds": 3,
+   "pooled_auroc_std": 6.798699777552591e-17,
+   "within_task_auroc_std": null,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.38748753469917324,
+    0.5481346496602357
+   ],
+   "within_task_auroc_ci": null,
+   "auroc_gap_ci": null
+  },
+  {
+   "method": "empty_patch",
+   "eval_set": "lite_gpt4o",
+   "n_runs": 300,
+   "pooled_auroc": 0.5656779661016949,
+   "within_task_auroc": null,
+   "n_mixed_tasks": 0,
+   "n_pairs": 0,
+   "brier": 0.1721470983085658,
+   "ece": 0.11667796056569395,
+   "base_rate": 0.21333333333333335,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": null,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5443424589700058,
+    0.5864376824957737
+   ],
+   "within_task_auroc_ci": null,
+   "auroc_gap_ci": null
+  },
+  {
+   "method": "prompt_only",
+   "eval_set": "lite_gpt4o",
+   "n_runs": 300,
+   "pooled_auroc": 0.4009533898305085,
+   "within_task_auroc": null,
+   "n_mixed_tasks": 0,
+   "n_pairs": 0,
+   "brier": 0.19389148338445064,
+   "ece": 0.14980815574587772,
+   "base_rate": 0.21333333333333335,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": null,
+   "brier_std": 3.3993498887762956e-17,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.33013596602434075,
+    0.4705696822397251
+   ],
+   "within_task_auroc_ci": null,
+   "auroc_gap_ci": null
+  },
+  {
+   "method": "telemetry_lr",
+   "eval_set": "lite_gpt4o",
+   "n_runs": 300,
+   "pooled_auroc": 0.6065280720338984,
+   "within_task_auroc": null,
+   "n_mixed_tasks": 0,
+   "n_pairs": 0,
+   "brier": 0.1940809966315339,
+   "ece": 0.16662403835558554,
+   "base_rate": 0.21333333333333335,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": null,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.5356397051614057,
+    0.6686982558504297
+   ],
+   "within_task_auroc_ci": null,
+   "auroc_gap_ci": null
+  },
+  {
+   "method": "telemetry_gbm",
+   "eval_set": "lite_gpt4o",
+   "n_runs": 300,
+   "pooled_auroc": 0.5934189618644068,
+   "within_task_auroc": null,
+   "n_mixed_tasks": 0,
+   "n_pairs": 0,
+   "brier": 0.20133344622780566,
+   "ece": 0.18400896210270776,
+   "base_rate": 0.21333333333333335,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": null,
+   "brier_std": 3.3993498887762956e-17,
+   "ece_std": 3.3993498887762956e-17,
+   "pooled_auroc_ci": [
+    0.5244681274834728,
+    0.6586032333229864
+   ],
+   "within_task_auroc_ci": null,
+   "auroc_gap_ci": null
+  }
+ ]
+}

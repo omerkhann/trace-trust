@@ -78,12 +78,17 @@ def cv_predict(data: pd.DataFrame, method: str, seed: int = config.SEED) -> pd.D
     return _rows(dev, method, p)
 
 
+def fit_predict(train: pd.DataFrame, target: pd.DataFrame, method: str, seed: int = config.SEED) -> pd.DataFrame:
+    """Fit on `train` runs, predict `target` runs (needs a `fold` column; -1 outside dev)."""
+    make, cols = METHODS[method]
+    target = target.reset_index(drop=True)
+    model = make(seed).fit(*_xy(train, cols))
+    return _rows(target, method, model.predict_proba(_xy(target, cols)[0])[:, 1])
+
+
 def holdout_predict(data: pd.DataFrame, method: str, seed: int = config.SEED) -> pd.DataFrame:
     """Fit on all dev runs, predict the held-out test runs."""
-    make, cols = METHODS[method]
-    dev, test = data[data["split"] == "dev"], data[data["split"] == "test"].reset_index(drop=True)
-    model = make(seed).fit(*_xy(dev, cols))
-    return _rows(test, method, model.predict_proba(_xy(test, cols)[0])[:, 1])
+    return fit_predict(data[data["split"] == "dev"], data[data["split"] == "test"], method, seed)
 
 
 def coefficients(data: pd.DataFrame, method: str = "telemetry_lr") -> pd.Series:
