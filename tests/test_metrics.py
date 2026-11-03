@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.eval.metrics import bootstrap_ci, ece, evaluate, evaluate_seeds, within_task_auroc
+from src.eval.metrics import bootstrap_ci, ece, evaluate, evaluate_seeds, paired_bootstrap, within_task_auroc
 
 
 def _preds(rows):
@@ -79,3 +79,14 @@ def test_evaluate_seeds_mean_and_std():
     assert r.within_task_auroc_std == pytest.approx(np.std([1.0, 0.5], ddof=1))
     single = evaluate_seeds([a], "m", n_boot=0)
     assert single.within_task_auroc_std is None and single.pooled_auroc_ci is None
+
+
+def test_paired_bootstrap_detects_a_better_ranker():
+    a = _noisy_preds(n_tasks=30, seed=3)
+    b = a.assign(p_success=np.random.default_rng(9).uniform(0, 1, len(a)))      # random scores
+    a = a.assign(uid=[f"u{i}" for i in range(len(a))])
+    b = b.assign(uid=a["uid"])
+    r = paired_bootstrap(a, b, n_boot=300)
+    assert r["within"][0] > 0 and r["within"][1] > 0          # lower CI bound above 0
+    same = paired_bootstrap(a, a.copy(), n_boot=100)
+    assert same["pooled"][:3] == (0.0, 0.0, 0.0)

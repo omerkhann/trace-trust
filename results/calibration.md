@@ -70,3 +70,16 @@ Calibrators are fit only on data the evaluation never sees (see experiments/cali
 | length_only | prior (dev rate -> K-task rate) | 0.201 ± 0.066 | 0.275 ± 0.027 | 0.782 ± 0.073 | 0.591 | 0.670 |
 | length_only | platt (dev) + prior | 0.201 ± 0.066 | 0.275 ± 0.027 | 0.782 ± 0.073 | 0.591 | 0.670 |
 | length_only | platt (refit on K tasks) | 0.087 ± 0.052 | 0.230 ± 0.013 | 0.659 ± 0.041 | 0.591 | 0.670 |
+
+### C. verifier runs (5-fold by task): 237 runs, base rate 0.494
+
+| predictor | calibrator | ECE | Brier | NLL | pooled AUROC | within-task AUROC |
+|---|---|---|---|---|---|---|
+| swegym_verifier_32b | none | 0.290 | 0.313 | 0.893 | 0.734 | 0.741 |
+| swegym_verifier_32b | prior | 0.287 | 0.312 | 0.890 | 0.691 | 0.741 |
+| swegym_verifier_32b | platt | 0.100 | 0.230 | 0.669 | 0.667 | 0.741 |
+| swegym_verifier_32b | isotonic | 0.131 | 0.216 | 0.677 | 0.696 | 0.725 |
+| telemetry_lr | none | 0.361 | 0.376 | 1.123 | 0.604 | 0.589 |
+| telemetry_lr | prior | 0.142 | 0.257 | 0.722 | 0.597 | 0.589 |
+| telemetry_lr | platt | 0.094 | 0.243 | 0.679 | 0.584 | 0.589 |
+| telemetry_lr | isotonic | 0.086 | 0.245 | 0.730 | 0.580 | 0.614 |

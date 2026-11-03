@@ -97,6 +97,52 @@ def bootstrap_ci(preds: pd.DataFrame, n_boot: int = config.N_BOOT, seed: int = c
     return {"pooled": ci(pooled), "within": ci(within), "gap": ci(pooled - within)}
 
 
+def _task_counts(preds: pd.DataFrame, task_idx: np.ndarray, n_tasks: int) -> tuple[np.ndarray, np.ndarray]:
+    """Per-task (wins, pairs) of same-task (pass, fail) comparisons."""
+    wins, pairs = np.zeros(n_tasks), np.zeros(n_tasks)
+    for t, g in preds.assign(_t=task_idx).groupby("_t"):
+        pos = g.loc[g["label"], "p_success"].to_numpy()
+        neg = g.loc[~g["label"], "p_success"].to_numpy()
+        diff = pos[:, None] - neg[None, :]
+        wins[t] = (diff > 0).sum() + 0.5 * (diff == 0).sum()
+        pairs[t] = diff.size
+    return wins, pairs
+
+
+def paired_bootstrap(a: pd.DataFrame, b: pd.DataFrame, n_boot: int = config.N_BOOT, seed: int = config.SEED,
+                     level: float = 0.95) -> dict:
+    """Difference a - b in pooled and within-task AUROC on the same runs, with a task-level bootstrap
+    that resamples the same tasks for both methods.
+    -> {"pooled": (diff, lo, hi, share a > b), "within": (...)}"""
+    b = b.set_index("uid").loc[a["uid"]].reset_index()
+    task_idx, tasks = pd.factorize(a["instance_id"])
+    y = a["label"].to_numpy(bool)
+    pa, pb = a["p_success"].to_numpy(float), b["p_success"].to_numpy(float)
+    wa, pairs = _task_counts(a, task_idx, len(tasks))
+    wb, _ = _task_counts(b.assign(label=y), task_idx, len(tasks))
+
+    rng = np.random.default_rng(seed)
+    dp, dw = [], []
+    for _ in range(n_boot):
+        counts = np.bincount(rng.integers(0, len(tasks), len(tasks)), minlength=len(tasks))
+        w = counts[task_idx]
+        if 0 < w[y].sum() < w.sum():
+            dp.append(roc_auc_score(y, pa, sample_weight=w) - roc_auc_score(y, pb, sample_weight=w))
+        n_pairs = counts @ pairs
+        if n_pairs:
+            dw.append((counts @ wa - counts @ wb) / n_pairs)
+
+    def summ(point, x):
+        if point is None or len(x) < n_boot / 2:
+            return None
+        lo, hi = np.quantile(x, [(1 - level) / 2, (1 + level) / 2])
+        return float(point), float(lo), float(hi), float(np.mean(np.array(x) > 0))
+
+    pooled = (pooled_auroc(y, pa) - pooled_auroc(y, pb)) if 0 < y.sum() < len(y) else None
+    within = (wa.sum() - wb.sum()) / pairs.sum() if pairs.sum() else None
+    return {"pooled": summ(pooled, dp), "within": summ(within, dw)}
+
+
 def evaluate_seeds(seed_preds: list[pd.DataFrame], method: str, eval_set: str = "dev",
                    n_boot: int = config.N_BOOT) -> EvalReport:
     """One report over several seeds: mean of each metric, std across seeds, and bootstrap
