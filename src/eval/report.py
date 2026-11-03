@@ -60,7 +60,8 @@ def write_metrics(reports: list[EvalReport], extra: dict, name: str = "metrics")
     (config.RESULTS_DIR / f"{name}.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def reliability_plot(preds: dict[str, pd.DataFrame], path=None) -> None:
+def reliability_plot(preds: dict[str, pd.DataFrame], path=None,
+                     title: str = "Reliability on held-out test") -> None:
     """Small multiples, one panel per method: mean predicted p vs observed resolve rate per bin."""
     path = path or config.RESULTS_DIR / "reliability.png"
     curves = {m: reliability_curve(p["label"].to_numpy(float), p["p_success"].to_numpy(float))
@@ -82,7 +83,7 @@ def reliability_plot(preds: dict[str, pd.DataFrame], path=None) -> None:
             s.set_visible(False)
         ax.set_xlabel("mean predicted p(resolved)", color=MUTED, fontsize=8)
     axes[0].set_ylabel("observed resolve rate", color=MUTED, fontsize=8)
-    fig.suptitle("Reliability on held-out test (15 equal-mass bins); dashed = perfect calibration",
+    fig.suptitle(f"{title} (15 equal-mass bins); dashed = perfect calibration",
                  color=INK, fontsize=10, x=0.01, ha="left")
     fig.tight_layout()
     fig.savefig(path, dpi=150, facecolor="white")
