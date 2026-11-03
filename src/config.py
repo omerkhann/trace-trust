@@ -16,4 +16,6 @@ SPLITS_PATH = DATA_DIR / "splits.csv"               # dev/test split, dev folds,
 TEST_FRAC = 0.2       # share of tasks held out as the final test set
 N_FOLDS = 5           # GroupKFold over dev tasks
 SEED = 42
+SEEDS = (42, 43, 44)  # model seeds; results report mean ± std over these
+N_BOOT = 1000         # task-level bootstrap resamples for confidence intervals
 LLM_JUDGE_SAMPLE = 50

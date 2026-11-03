@@ -1,11 +1,14 @@
 """Tabular baselines. Each returns schema.Prediction rows: out-of-fold on dev, or held-out on test.
 
   length_only     LogReg on log(n_steps), log(total_tokens)        (B.10 baseline 2)
+  empty_patch     LogReg on patch_empty alone                       (one-signal check: no passing run
+                                                                     has an empty final patch)
   prompt_only     LogReg on issue features + repo one-hot           (B.10 baseline 3, task difficulty)
   telemetry_lr    LogReg on all RunFeatures (log1p, standardised)   (proposed, Phase 1 subset)
   telemetry_gbm   HistGradientBoosting on all RunFeatures           (proposed, Phase 1 subset)
 
 All use the split and fold columns from data/splits.csv, so every method sees the same splits.
+Model factories take a seed; results are reported as mean ± std over config.SEEDS.
 """
 from __future__ import annotations
 
@@ -25,26 +28,27 @@ from src.schema import RunFeatures, TaskFeatures
 _log1p = FunctionTransformer(lambda x: np.log1p(np.asarray(x, dtype=float)), feature_names_out="one-to-one")
 
 
-def _logreg(cols: list[str], categorical: list[str] = ()) -> Callable[[], Pipeline]:
-    def make():
+def _logreg(cols: list[str], categorical: list[str] = ()) -> Callable[[int], Pipeline]:
+    def make(seed: int):
         num = make_pipeline(_log1p, StandardScaler())
         ct = ColumnTransformer([("num", num, cols)] +
                                ([("cat", OneHotEncoder(handle_unknown="ignore"), list(categorical))] if categorical else []))
-        return make_pipeline(ct, LogisticRegression(C=1.0, max_iter=2000))
+        return make_pipeline(ct, LogisticRegression(C=1.0, max_iter=2000, random_state=seed))
     return make
 
 
-def _gbm(cols: list[str]) -> Callable[[], Pipeline]:
-    def make():
+def _gbm(cols: list[str]) -> Callable[[int], Pipeline]:
+    def make(seed: int):
         ct = ColumnTransformer([("num", "passthrough", cols)])
         return make_pipeline(ct, HistGradientBoostingClassifier(
-            max_iter=200, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0, random_state=config.SEED))
+            max_iter=200, learning_rate=0.05, max_leaf_nodes=15, l2_regularization=1.0, random_state=seed))
     return make
 
 
 TELEMETRY = RunFeatures.feature_names()
-METHODS: dict[str, tuple[Callable[[], Pipeline], list[str]]] = {
+METHODS: dict[str, tuple[Callable[[int], Pipeline], list[str]]] = {
     "length_only": (_logreg(["n_steps", "total_tokens"]), ["n_steps", "total_tokens"]),
+    "empty_patch": (_logreg(["patch_empty"]), ["patch_empty"]),
     "prompt_only": (_logreg(TaskFeatures.numeric_names(), ["repo"]), TaskFeatures.numeric_names() + ["repo"]),
     "telemetry_lr": (_logreg(TELEMETRY), TELEMETRY),
     "telemetry_gbm": (_gbm(TELEMETRY), TELEMETRY),
@@ -61,7 +65,7 @@ def _rows(data: pd.DataFrame, method: str, p: np.ndarray) -> pd.DataFrame:
                          "fold": data["fold"], "p_success": p, "label": data["resolved"].to_numpy(bool)})
 
 
-def cv_predict(data: pd.DataFrame, method: str) -> pd.DataFrame:
+def cv_predict(data: pd.DataFrame, method: str, seed: int = config.SEED) -> pd.DataFrame:
     """Out-of-fold predictions on dev runs. data: features merged with splits."""
     make, cols = METHODS[method]
     dev = data[data["split"] == "dev"].reset_index(drop=True)
@@ -69,22 +73,22 @@ def cv_predict(data: pd.DataFrame, method: str) -> pd.DataFrame:
     p = np.zeros(len(dev))
     for k in sorted(dev["fold"].unique()):
         test = (dev["fold"] == k).to_numpy()
-        model = make().fit(X[~test], y[~test])
+        model = make(seed).fit(X[~test], y[~test])
         p[test] = model.predict_proba(X[test])[:, 1]
     return _rows(dev, method, p)
 
 
-def holdout_predict(data: pd.DataFrame, method: str) -> pd.DataFrame:
+def holdout_predict(data: pd.DataFrame, method: str, seed: int = config.SEED) -> pd.DataFrame:
     """Fit on all dev runs, predict the held-out test runs."""
     make, cols = METHODS[method]
     dev, test = data[data["split"] == "dev"], data[data["split"] == "test"].reset_index(drop=True)
-    model = make().fit(*_xy(dev, cols))
+    model = make(seed).fit(*_xy(dev, cols))
     return _rows(test, method, model.predict_proba(_xy(test, cols)[0])[:, 1])
 
 
 def coefficients(data: pd.DataFrame, method: str = "telemetry_lr") -> pd.Series:
     """Standardised LogReg coefficients fit on dev runs, for the explainability readout (Gap 3)."""
     make, cols = METHODS[method]
-    model = make().fit(*_xy(data[data["split"] == "dev"], cols))
+    model = make(config.SEED).fit(*_xy(data[data["split"] == "dev"], cols))
     names = model[0].get_feature_names_out()
     return pd.Series(model[-1].coef_[0], index=[n.split("__", 1)[1] for n in names]).sort_values(key=abs, ascending=False)

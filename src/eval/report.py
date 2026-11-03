@@ -18,8 +18,22 @@ SERIES = "#2a78d6"     # categorical slot 1
 INK, MUTED, GRID = "#1f1f1e", "#6b6a66", "#e4e3df"
 
 
-def _fmt(x) -> str:
-    return "n/a" if x is None else f"{x:.3f}"
+def _fmt(x, std=None, ci=None, digits: int = 3) -> str:
+    """'0.812 ± 0.004 [0.770, 0.851]'; std shown only when non-zero."""
+    if x is None:
+        return "n/a"
+    s = f"{x:.{digits}f}"
+    if std and round(std, digits) > 0:
+        s += f" ± {std:.{digits}f}"
+    if ci:
+        s += f" [{ci[0]:.{digits}f}, {ci[1]:.{digits}f}]"
+    return s
+
+
+def _gap(r: EvalReport) -> str:
+    if r.pooled_auroc is None or r.within_task_auroc is None:
+        return "n/a"
+    return _fmt(r.pooled_auroc - r.within_task_auroc, ci=r.auroc_gap_ci)
 
 
 def write_metrics(reports: list[EvalReport], extra: dict) -> None:
@@ -27,17 +41,22 @@ def write_metrics(reports: list[EvalReport], extra: dict) -> None:
     payload = {"generated": date.today().isoformat(), **extra, "reports": [r.model_dump() for r in reports]}
     (config.RESULTS_DIR / "metrics.json").write_text(json.dumps(payload, indent=1))
 
-    lines = []
+    seeds = extra.get("seeds")
+    lines = [f"Point estimates are the mean over seeds {seeds} (± std across seeds, shown only where non-zero). "
+             f"Brackets: 95% task-level bootstrap interval ({extra.get('n_boot')} resamples of tasks). "
+             "gap = pooled minus within-task AUROC.", ""] if seeds else []
     for eval_set in dict.fromkeys(r.eval_set for r in reports):
         rs = [r for r in reports if r.eval_set == eval_set]
         r0 = rs[0]
         lines += [f"### {eval_set}: {r0.n_runs} runs, base rate {r0.base_rate:.3f}, "
                   f"{r0.n_mixed_tasks} mixed tasks / {r0.n_pairs} same-task pairs", "",
-                  "| method | pooled AUROC | within-task AUROC | Brier | ECE |", "|---|---|---|---|---|"]
-        lines += [f"| {r.method} | {_fmt(r.pooled_auroc)} | {_fmt(r.within_task_auroc)} | {r.brier:.4f} | {r.ece:.4f} |"
+                  "| method | pooled AUROC | within-task AUROC | gap | Brier | ECE |", "|---|---|---|---|---|---|"]
+        lines += [f"| {r.method} | {_fmt(r.pooled_auroc, r.pooled_auroc_std, r.pooled_auroc_ci)} "
+                  f"| {_fmt(r.within_task_auroc, r.within_task_auroc_std, r.within_task_auroc_ci)} | {_gap(r)} "
+                  f"| {_fmt(r.brier, r.brier_std, digits=4)} | {_fmt(r.ece, r.ece_std, digits=4)} |"
                   for r in rs]
         lines.append("")
-    (config.RESULTS_DIR / "metrics.md").write_text("\n".join(lines))
+    (config.RESULTS_DIR / "metrics.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def reliability_plot(preds: dict[str, pd.DataFrame], path=None) -> None:

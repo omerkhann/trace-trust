@@ -133,3 +133,13 @@ class EvalReport(BaseModel):
     brier: float
     ece: float
     base_rate: float
+    # Point metrics above are the mean over seeds; std is across seeds (None for a single seed).
+    n_seeds: int = 1
+    pooled_auroc_std: Optional[float] = None
+    within_task_auroc_std: Optional[float] = None
+    brier_std: Optional[float] = None
+    ece_std: Optional[float] = None
+    # 95% task-level bootstrap intervals, from the first seed's predictions.
+    pooled_auroc_ci: Optional[tuple[float, float]] = None
+    within_task_auroc_ci: Optional[tuple[float, float]] = None
+    auroc_gap_ci: Optional[tuple[float, float]] = None       # pooled minus within-task
