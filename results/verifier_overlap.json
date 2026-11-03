@@ -1,0 +1,68 @@
+{
+ "verifier_rows": 2636,
+ "verifier_tasks": 1280,
+ "all": {
+  "runs": 6055,
+  "tasks": 2438,
+  "tasks_seen": 1301,
+  "task_overlap_tasks": 0.5336,
+  "task_overlap_runs": 0.6385,
+  "identical_runs_strict": 969,
+  "identical_runs_loose": 1032,
+  "identical_rate": 0.1704
+ },
+ "dev": {
+  "runs": 4907,
+  "tasks": 1950,
+  "tasks_seen": 1043,
+  "task_overlap_tasks": 0.5349,
+  "task_overlap_runs": 0.6417,
+  "identical_runs_strict": 785,
+  "identical_runs_loose": 839,
+  "identical_rate": 0.171
+ },
+ "test": {
+  "runs": 1148,
+  "tasks": 488,
+  "tasks_seen": 258,
+  "task_overlap_tasks": 0.5287,
+  "task_overlap_runs": 0.6246,
+  "identical_runs_strict": 184,
+  "identical_runs_loose": 193,
+  "identical_rate": 0.1681
+ },
+ "test_mixed_tasks": {
+  "runs": 172,
+  "tasks": 38,
+  "tasks_seen": 38,
+  "task_overlap_tasks": 1.0,
+  "task_overlap_runs": 1.0,
+  "identical_runs_strict": 49,
+  "identical_runs_loose": 53,
+  "identical_rate": 0.3081
+ },
+ "dev_mixed_tasks": {
+  "runs": 865,
+  "tasks": 150,
+  "tasks_seen": 146,
+  "task_overlap_tasks": 0.9733,
+  "task_overlap_runs": 0.9734,
+  "identical_runs_strict": 288,
+  "identical_runs_loose": 314,
+  "identical_rate": 0.363
+ },
+ "judge_sample": {
+  "runs": 50,
+  "tasks": 25,
+  "tasks_seen": 25,
+  "task_overlap_tasks": 1.0,
+  "task_overlap_runs": 1.0,
+  "identical_runs_strict": 18,
+  "identical_runs_loose": 19,
+  "identical_rate": 0.38
+ },
+ "strict_label_agreement": "969/969",
+ "distinct_verifier_rows_hit": 741,
+ "unseen_task_runs": 2189,
+ "unseen_task_resolved_rate": 0.0027
+}
