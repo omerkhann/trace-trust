@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-03",
+ "generated": "2026-11-04",
  "seeds": [
   42,
   43,
@@ -63,6 +63,23 @@
    "auroc_gap_ci": [
     -0.1264652525655852,
     -0.02415294447655426
+   ],
+   "within_task_wilcoxon_p": 6.912609250253692e-05,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.38055555555555554,
+     "pass": 0.4555555555555556,
+     "random": 0.3433333333333333
+    },
+    {
+     "k": 4,
+     "n_tasks": 299,
+     "best": 0.3879598662207358,
+     "pass": 0.5484949832775919,
+     "random": 0.34448160535117056
+    }
    ]
   },
   {
@@ -92,6 +109,23 @@
    "auroc_gap_ci": [
     -0.03874285442969945,
     5.464793975617777e-06
+   ],
+   "within_task_wilcoxon_p": 0.00017249046415619823,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.35333333333333333,
+     "pass": 0.4555555555555556,
+     "random": 0.3433333333333333
+    },
+    {
+     "k": 4,
+     "n_tasks": 299,
+     "best": 0.35451505016722407,
+     "pass": 0.5484949832775919,
+     "random": 0.34448160535117056
+    }
    ]
   },
   {
@@ -121,6 +155,23 @@
    "auroc_gap_ci": [
     -0.11163434527757995,
     -0.004501254926665246
+   ],
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.34277777777777774,
+     "pass": 0.4555555555555556,
+     "random": 0.3433333333333333
+    },
+    {
+     "k": 4,
+     "n_tasks": 299,
+     "best": 0.34364548494983277,
+     "pass": 0.5484949832775919,
+     "random": 0.34448160535117056
+    }
    ]
   },
   {
@@ -150,6 +201,23 @@
    "auroc_gap_ci": [
     -0.0965769041665716,
     0.011829699156891704
+   ],
+   "within_task_wilcoxon_p": 3.502272819662003e-07,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.3872222222222222,
+     "pass": 0.4555555555555556,
+     "random": 0.3433333333333333
+    },
+    {
+     "k": 4,
+     "n_tasks": 299,
+     "best": 0.40468227424749165,
+     "pass": 0.5484949832775919,
+     "random": 0.34448160535117056
+    }
    ]
   },
   {
@@ -179,6 +247,23 @@
    "auroc_gap_ci": [
     -0.13610894895007772,
     -0.033838372889165434
+   ],
+   "within_task_wilcoxon_p": 4.944255214123572e-09,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.3927777777777777,
+     "pass": 0.4555555555555556,
+     "random": 0.3433333333333333
+    },
+    {
+     "k": 4,
+     "n_tasks": 299,
+     "best": 0.41471571906354515,
+     "pass": 0.5484949832775919,
+     "random": 0.34448160535117056
+    }
    ]
   },
   {
@@ -208,6 +293,23 @@
    "auroc_gap_ci": [
     -0.1671302740349933,
     -0.018904804684798663
+   ],
+   "within_task_wilcoxon_p": 1.4572945837525611e-05,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.4211111111111111,
+     "pass": 0.4744444444444445,
+     "random": 0.38666666666666666
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -237,6 +339,23 @@
    "auroc_gap_ci": [
     -0.01412309414120898,
     0.009452446215016886
+   ],
+   "within_task_wilcoxon_p": 0.08985624743949988,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.3883333333333333,
+     "pass": 0.4744444444444445,
+     "random": 0.38666666666666666
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -266,6 +385,23 @@
    "auroc_gap_ci": [
     -0.10863312531030753,
     0.007851125155842423
+   ],
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.38611111111111107,
+     "pass": 0.4744444444444445,
+     "random": 0.38666666666666666
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -295,6 +431,23 @@
    "auroc_gap_ci": [
     -0.0516051691811657,
     0.12993484192365767
+   ],
+   "within_task_wilcoxon_p": 0.033009837510646324,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.4022222222222222,
+     "pass": 0.4744444444444445,
+     "random": 0.38666666666666666
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -324,6 +477,23 @@
    "auroc_gap_ci": [
     -0.13923249414628916,
     0.03004037873248395
+   ],
+   "within_task_wilcoxon_p": 0.00020146912963128034,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 300,
+     "best": 0.4155555555555555,
+     "pass": 0.4744444444444445,
+     "random": 0.38666666666666666
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -353,6 +523,23 @@
    "auroc_gap_ci": [
     -0.00222339983287902,
     0.3221234492346776
+   ],
+   "within_task_wilcoxon_p": 0.736455371567231,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 299,
+     "best": 0.4214046822742475,
+     "pass": 0.49498327759197325,
+     "random": 0.4280936454849498
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -382,6 +569,23 @@
    "auroc_gap_ci": [
     -0.03051785358019507,
     0.014881557297715783
+   ],
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 299,
+     "best": 0.4297658862876254,
+     "pass": 0.49498327759197325,
+     "random": 0.4280936454849498
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -411,6 +615,23 @@
    "auroc_gap_ci": [
     -0.12476816462486358,
     -0.004178496743133153
+   ],
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 299,
+     "best": 0.4280936454849498,
+     "pass": 0.49498327759197325,
+     "random": 0.4280936454849498
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -440,6 +661,23 @@
    "auroc_gap_ci": [
     -0.09268197623721725,
     0.2140934451704969
+   ],
+   "within_task_wilcoxon_p": 0.26354462843276905,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 299,
+     "best": 0.43478260869565216,
+     "pass": 0.49498327759197325,
+     "random": 0.4280936454849498
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -469,6 +707,23 @@
    "auroc_gap_ci": [
     -0.12444564619254671,
     0.17943493686893502
+   ],
+   "within_task_wilcoxon_p": 0.26354462843276905,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 299,
+     "best": 0.43478260869565216,
+     "pass": 0.49498327759197325,
+     "random": 0.4280936454849498
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
    ]
   },
   {
@@ -492,7 +747,24 @@
     0.5481346496602357
    ],
    "within_task_auroc_ci": null,
-   "auroc_gap_ci": null
+   "auroc_gap_ci": null,
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
   },
   {
    "method": "empty_patch",
@@ -515,7 +787,24 @@
     0.5864376824957737
    ],
    "within_task_auroc_ci": null,
-   "auroc_gap_ci": null
+   "auroc_gap_ci": null,
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
   },
   {
    "method": "prompt_only",
@@ -538,7 +827,24 @@
     0.4705696822397251
    ],
    "within_task_auroc_ci": null,
-   "auroc_gap_ci": null
+   "auroc_gap_ci": null,
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
   },
   {
    "method": "telemetry_lr",
@@ -561,7 +867,24 @@
     0.6686982558504297
    ],
    "within_task_auroc_ci": null,
-   "auroc_gap_ci": null
+   "auroc_gap_ci": null,
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
   },
   {
    "method": "telemetry_gbm",
@@ -584,7 +907,24 @@
     0.6586032333229864
    ],
    "within_task_auroc_ci": null,
-   "auroc_gap_ci": null
+   "auroc_gap_ci": null,
+   "within_task_wilcoxon_p": null,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
   }
  ]
 }

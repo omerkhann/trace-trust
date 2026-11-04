@@ -25,7 +25,7 @@ from sklearn.model_selection import GroupKFold
 from src import config
 from src.calibration import Calibrator
 from src.eval import report
-from src.eval.metrics import ece, pooled_auroc, within_task_auroc
+from src.eval.metrics import best_at_k, ece, pooled_auroc, within_task_auroc
 
 PREDICTORS = ["telemetry_lr", "telemetry_gbm", "length_only"]
 VERIFIER_SCORES = config.DATA_DIR / "verifier_scores_lite.csv"
@@ -39,7 +39,7 @@ def metrics(df: pd.DataFrame, p: np.ndarray) -> dict:
     wt, _, pairs = within_task_auroc(df.assign(p_success=p))
     return {"n": len(df), "base_rate": float(y.mean()), "ece": ece(y, p), "brier": float(brier_score_loss(y, p)),
             "nll": float(log_loss(y, p, labels=[False, True])), "pooled_auroc": pooled_auroc(y, p),
-            "within_auroc": wt, "pairs": pairs}
+            "within_auroc": wt, "pairs": pairs, "best_at_2": best_at_k(df.assign(p_success=p), 2)["best"]}
 
 
 def row(setting: str, predictor: str, calibrator: str, m: dict) -> dict:
@@ -58,7 +58,9 @@ def in_domain(preds: pd.DataFrame, splits: pd.DataFrame) -> list[dict]:
     return rows
 
 
-def lite(preds: pd.DataFrame, splits: pd.DataFrame, lite_preds: pd.DataFrame, k_tasks: int) -> tuple[list[dict], dict]:
+def lite(preds: pd.DataFrame, splits: pd.DataFrame, lite_preds: pd.DataFrame, k_tasks: int,
+         zero_shot: bool = True) -> tuple[list[dict], dict]:
+    """Zero-shot rows (once, when zero_shot) and few-shot rows for K labelled tasks."""
     split = splits.set_index("uid")["split"]
     rows, curves = [], {}
     tasks = np.array(sorted(lite_preds["instance_id"].unique()))
@@ -66,7 +68,7 @@ def lite(preds: pd.DataFrame, splits: pd.DataFrame, lite_preds: pd.DataFrame, k_
         dev = preds[(preds["method"] == name) & preds["uid"].map(split).eq("dev")]
         target = lite_preds[lite_preds["method"] == name]
         pi_dev = float(dev["label"].mean())
-        for method in ("none", "platt", "isotonic"):        # zero-shot: fit on SWE-Gym dev only
+        for method in ("none", "platt", "isotonic") if zero_shot else ():   # fit on SWE-Gym dev only
             cal = Calibrator(method).fit(dev["p_success"], dev["label"])
             q = cal.transform(target["p_success"])
             rows.append(row("B. Lite zero-shot", name, f"{method} (SWE-Gym dev)", metrics(target, q)))
@@ -91,7 +93,8 @@ def lite(preds: pd.DataFrame, splits: pd.DataFrame, lite_preds: pd.DataFrame, k_
                 if name == "telemetry_lr" and seed == config.SEEDS[0] and method == "platt (dev) + prior":
                     curves["Lite few-shot platt+prior"] = rest.assign(p_success=q)
         for method, ms in per_seed.items():
-            agg = {k: float(np.mean([m[k] for m in ms])) for k in ("ece", "brier", "nll", "pooled_auroc", "base_rate", "k_runs")}
+            agg = {k: float(np.mean([m[k] for m in ms]))
+                   for k in ("ece", "brier", "nll", "pooled_auroc", "base_rate", "k_runs", "best_at_2")}
             agg |= {f"{k}_std": float(np.std([m[k] for m in ms], ddof=1)) for k in ("ece", "brier", "nll")}
             wts = [m["within_auroc"] for m in ms if m["within_auroc"] is not None]
             agg |= {"n": ms[0]["n"], "within_auroc": float(np.mean(wts)) if wts else None, "pairs": ms[0]["pairs"]}
@@ -140,10 +143,10 @@ def to_markdown(rows: list[dict]) -> str:
     for setting in dict.fromkeys(r["setting"] for r in rows):
         rs = [r for r in rows if r["setting"] == setting]
         lines += [f"### {setting}: {rs[0]['n']} runs, base rate {rs[0]['base_rate']:.3f}", "",
-                  "| predictor | calibrator | ECE | Brier | NLL | pooled AUROC | within-task AUROC |",
-                  "|---|---|---|---|---|---|---|"]
+                  "| predictor | calibrator | ECE | Brier | NLL | pooled AUROC | within-task AUROC | Best@2 |",
+                  "|---|---|---|---|---|---|---|---|"]
         lines += [f"| {r['predictor']} | {r['calibrator']} | {f(r, 'ece')} | {f(r, 'brier')} | {f(r, 'nll')} | "
-                  f"{f(r, 'pooled_auroc')} | {f(r, 'within_auroc')} |" for r in rs]
+                  f"{f(r, 'pooled_auroc')} | {f(r, 'within_auroc')} | {f(r, 'best_at_2')} |" for r in rs]
         lines.append("")
     return "\n".join(lines)
 
@@ -158,8 +161,8 @@ def main() -> None:
 
     rows = in_domain(preds, splits)
     lite_rows, curves = [], {}
-    for k in ks:
-        r, c = lite(preds, splits, lite_preds, k)
+    for i, k in enumerate(ks):
+        r, c = lite(preds, splits, lite_preds, k, zero_shot=i == 0)
         lite_rows += r
         curves = curves or c
     dev_rate = float(splits.loc[splits["split"] == "dev", "resolved"].mean())

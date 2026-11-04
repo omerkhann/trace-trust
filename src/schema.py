@@ -87,6 +87,33 @@ class RunFeatures(BaseModel):
         return [f for f in cls.model_fields if f not in {"uid", "instance_id", "resolved"}]
 
 
+class PrefixFeatures(BaseModel):
+    """Telemetry of a run that is still going, after its first `step` agent actions (and their
+    observations). Only what a live monitor can see: no final patch, no total length.
+    Used by the early-warning model and the governance agent (Gap 3)."""
+    uid: str
+    instance_id: str
+    resolved: Optional[bool] = None
+    checkpoint: str               # "abs" (after a fixed number of actions) or "frac" (share of the run)
+    prefix_frac: Optional[float] = None   # for "frac" rows: 0.25 / 0.5 / 0.75 (uses the total, so offline only)
+    step: int                     # agent actions so far
+    tokens_so_far: int
+    n_errors: int
+    recent_errors: int            # errors in the observations of the last 5 actions
+    n_repeated_commands: int
+    n_distinct_tools: int
+    n_edits: int                  # edit/create actions
+    n_files_edited: int
+    n_edits_without_view: int
+    steps_since_edit: int         # actions since the last edit (= step if none yet)
+    ran_tests: bool
+
+    @classmethod
+    def feature_names(cls) -> list[str]:
+        return [f for f in cls.model_fields
+                if f not in {"uid", "instance_id", "resolved", "checkpoint", "prefix_frac"}]
+
+
 class TaskFeatures(BaseModel):
     """Pre-execution features of the task alone (no trajectory). Used only by the
     prompt-only baseline, which measures how much signal is just task difficulty."""

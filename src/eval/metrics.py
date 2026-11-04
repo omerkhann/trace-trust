@@ -6,16 +6,19 @@ equals the per-task AUROC weighted by n_pass * n_fail.
 """
 from __future__ import annotations
 
+from math import comb
 from typing import Optional
 
 import numpy as np
 import pandas as pd
+from scipy.stats import wilcoxon
 from sklearn.metrics import brier_score_loss, roc_auc_score
 
 from src import config
 from src.schema import EvalReport
 
 N_BINS = 15   # equal-mass bins, as in the proposal's evaluation plan
+BEST_K = (2, 4)   # SWE-Gym runs per task: median 2, max 10; SWE-bench Lite has 4 per task
 
 
 def pooled_auroc(y: np.ndarray, p: np.ndarray) -> Optional[float]:
@@ -36,6 +39,54 @@ def within_task_auroc(df: pd.DataFrame) -> tuple[Optional[float], int, int]:
         pairs += diff.size
         tasks += 1
     return (wins / pairs if pairs else None), tasks, pairs
+
+
+def within_task_wilcoxon(df: pd.DataFrame) -> tuple[Optional[float], int]:
+    """One-sided Wilcoxon signed-rank test that per-task AUROC (over mixed tasks) exceeds 0.5,
+    i.e. that the scores rank same-task runs better than random. Tasks at exactly 0.5 are dropped
+    (zero_method="wilcox"). -> (p_value, n_mixed_tasks); p is None with fewer than 2 informative tasks."""
+    aucs = []
+    for _, g in df.groupby("instance_id"):
+        pos = g.loc[g["label"], "p_success"].to_numpy()
+        neg = g.loc[~g["label"], "p_success"].to_numpy()
+        if len(pos) and len(neg):
+            diff = pos[:, None] - neg[None, :]
+            aucs.append(((diff > 0).sum() + 0.5 * (diff == 0).sum()) / diff.size)
+    d = np.array(aucs) - 0.5
+    if (d != 0).sum() < 2:
+        return None, len(aucs)
+    return float(wilcoxon(d, alternative="greater", zero_method="wilcox").pvalue), len(aucs)
+
+
+def best_at_k(df: pd.DataFrame, k: int) -> dict:
+    """Best@k as in SWE-Gym: draw k runs of a task, submit the highest-scored one; success if it
+    resolved. Computed exactly as the expectation over all k-subsets (ties broken at random), over
+    tasks with at least k runs. Also returns Pass@k (oracle: any of the k resolved) and Random@k
+    (= the resolve rate, submitting a random one of the k).
+    -> {"k", "n_tasks", "best", "pass", "random"} (values None if no task has k runs)"""
+    best, pas, rnd = [], [], []
+    for _, g in df.groupby("instance_id"):
+        n = len(g)
+        if n < k:
+            continue
+        g = g.sort_values("p_success", ascending=False)
+        p, y = g["p_success"].to_numpy(float), g["label"].to_numpy(float)
+        total, e, i = comb(n, k), 0.0, 0
+        while i < n:                                   # one tie group = ranks i..j
+            j = i
+            while j + 1 < n and p[j + 1] == p[i]:
+                j += 1
+            # P(the subset's top-scored run falls in this group) = P(none of ranks < i drawn,
+            # at least one of i..j drawn); within the group each member is equally likely.
+            e += (comb(n - i, k) - comb(n - j - 1, k)) / total * y[i:j + 1].mean()
+            i = j + 1
+        best.append(e)
+        pas.append(1 - comb(n - int(y.sum()), k) / total)
+        rnd.append(y.mean())
+    if not best:
+        return {"k": k, "n_tasks": 0, "best": None, "pass": None, "random": None}
+    return {"k": k, "n_tasks": len(best), "best": float(np.mean(best)), "pass": float(np.mean(pas)),
+            "random": float(np.mean(rnd))}
 
 
 def _equal_mass_bins(p: np.ndarray, n_bins: int) -> np.ndarray:
@@ -176,4 +227,6 @@ def evaluate(preds: pd.DataFrame, method: str, eval_set: str = "dev") -> EvalRep
         pooled_auroc=pooled_auroc(y, p), within_task_auroc=wt,
         n_mixed_tasks=n_tasks, n_pairs=n_pairs,
         brier=float(brier_score_loss(y, p)), ece=ece(y, p), base_rate=float(y.mean()),
+        within_task_wilcoxon_p=within_task_wilcoxon(preds)[0],
+        best_at_k=[best_at_k(preds, k) for k in BEST_K],
     )

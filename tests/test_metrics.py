@@ -90,3 +90,31 @@ def test_paired_bootstrap_detects_a_better_ranker():
     assert r["within"][0] > 0 and r["within"][1] > 0          # lower CI bound above 0
     same = paired_bootstrap(a, a.copy(), n_boot=100)
     assert same["pooled"][:3] == (0.0, 0.0, 0.0)
+
+
+def test_best_at_k_exact_expectation():
+    from src.eval.metrics import best_at_k
+    # 3 runs: scores rank pass > fail > fail. Every 2-subset containing the pass run picks it (2 of 3);
+    # the remaining subset {fail, fail} fails -> Best@2 = 2/3. Pass@2 = 2/3, Random = 1/3.
+    df = _preds([("a", True, 0.9), ("a", False, 0.5), ("a", False, 0.1)])
+    r = best_at_k(df, 2)
+    assert r["n_tasks"] == 1
+    assert r["best"] == pytest.approx(2 / 3)
+    assert r["pass"] == pytest.approx(2 / 3)
+    assert r["random"] == pytest.approx(1 / 3)
+    # Worst ranking: pass run scored lowest -> never picked when paired.
+    assert best_at_k(_preds([("a", True, 0.1), ("a", False, 0.5), ("a", False, 0.9)]), 2)["best"] == pytest.approx(0)
+    # Tied scores -> random pick within the tie: 1/2 of the time on a 2-run task.
+    assert best_at_k(_preds([("a", True, 0.5), ("a", False, 0.5)]), 2)["best"] == pytest.approx(0.5)
+    # Tasks with fewer than k runs are skipped.
+    assert best_at_k(_preds([("a", True, 0.5)]), 2)["n_tasks"] == 0
+
+
+def test_within_task_wilcoxon():
+    from src.eval.metrics import within_task_wilcoxon
+    good = _preds([(t, lab, s) for t in "abcdefgh" for lab, s in ((True, 0.9), (False, 0.1))])
+    p, n = within_task_wilcoxon(good)
+    assert n == 8 and p < 0.01
+    bad = _preds([(t, lab, s) for t in "abcdefgh" for lab, s in ((True, 0.1), (False, 0.9))])
+    assert within_task_wilcoxon(bad)[0] > 0.9
+    assert within_task_wilcoxon(_preds([("a", True, 0.5), ("a", False, 0.5)]))[0] is None

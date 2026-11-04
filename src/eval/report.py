@@ -30,6 +30,12 @@ def _fmt(x, std=None, ci=None, digits: int = 3) -> str:
     return s
 
 
+def _pval(p) -> str:
+    if p is None:
+        return "n/a"
+    return "< 0.001" if p < 0.001 else f"{p:.3f}"
+
+
 def _gap(r: EvalReport) -> str:
     if r.pooled_auroc is None or r.within_task_auroc is None:
         return "n/a"
@@ -50,13 +56,24 @@ def write_metrics(reports: list[EvalReport], extra: dict, name: str = "metrics")
         rs = [r for r in reports if r.eval_set == eval_set]
         r0 = rs[0]
         lines += [f"### {eval_set}: {r0.n_runs} runs, base rate {r0.base_rate:.3f}, "
-                  f"{r0.n_mixed_tasks} mixed tasks / {r0.n_pairs} same-task pairs", "",
-                  "| method | pooled AUROC | within-task AUROC | gap | Brier | ECE |", "|---|---|---|---|---|---|"]
-        lines += [f"| {r.method} | {_fmt(r.pooled_auroc, r.pooled_auroc_std, r.pooled_auroc_ci)} "
-                  f"| {_fmt(r.within_task_auroc, r.within_task_auroc_std, r.within_task_auroc_ci)} | {_gap(r)} "
-                  f"| {_fmt(r.brier, r.brier_std, digits=4)} | {_fmt(r.ece, r.ece_std, digits=4)} |"
-                  for r in rs]
-        lines.append("")
+                  f"{r0.n_mixed_tasks} mixed tasks / {r0.n_pairs} same-task pairs", ""]
+        bk = [b for b in r0.best_at_k if b["n_tasks"]]
+        if bk:
+            lines += ["Best@k reference points (tasks with >= k runs): " + "; ".join(
+                f"k={b['k']}: {b['n_tasks']} tasks, Random@k {b['random']:.3f}, Pass@k (oracle) {b['pass']:.3f}"
+                for b in bk), ""]
+        ks = [b["k"] for b in bk]
+        lines += ["| method | pooled AUROC | within-task AUROC | Wilcoxon p | gap | Brier | ECE |"
+                  + "".join(f" Best@{k} |" for k in ks),
+                  "|---|---|---|---|---|---|---|" + "---|" * len(ks)]
+        for r in rs:
+            best = {b["k"]: b["best"] for b in r.best_at_k}
+            lines.append(f"| {r.method} | {_fmt(r.pooled_auroc, r.pooled_auroc_std, r.pooled_auroc_ci)} "
+                         f"| {_fmt(r.within_task_auroc, r.within_task_auroc_std, r.within_task_auroc_ci)} "
+                         f"| {_pval(r.within_task_wilcoxon_p)} | {_gap(r)} "
+                         f"| {_fmt(r.brier, r.brier_std, digits=4)} | {_fmt(r.ece, r.ece_std, digits=4)} |"
+                         + "".join(f" {_fmt(best.get(k))} |" for k in ks))
+        lines += ["", "Wilcoxon p: one-sided signed-rank test that per-task AUROC > 0.5 over mixed tasks.", ""]
     (config.RESULTS_DIR / f"{name}.md").write_text("\n".join(lines), encoding="utf-8")
 
 
