@@ -170,3 +170,7 @@ class EvalReport(BaseModel):
     pooled_auroc_ci: Optional[tuple[float, float]] = None
     within_task_auroc_ci: Optional[tuple[float, float]] = None
     auroc_gap_ci: Optional[tuple[float, float]] = None       # pooled minus within-task
+    # One-sided Wilcoxon signed-rank p that per-task AUROC > 0.5 (first seed's predictions).
+    within_task_wilcoxon_p: Optional[float] = None
+    # Best@k / Pass@k / Random@k over tasks with >= k runs (first seed's), see metrics.best_at_k.
+    best_at_k: list[dict] = []
