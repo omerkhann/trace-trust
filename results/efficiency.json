@@ -1,0 +1,64 @@
+{
+ "machine": {
+  "platform": "Windows-10-10.0.26300-SP0",
+  "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+  "python": "3.11.17",
+  "note": "CPU only; no GPU or API used by the agent"
+ },
+ "n_runs": 1148,
+ "mean_actions_per_run": 19,
+ "repeats": 3,
+ "ms_per_run": {
+  "feature extraction": {
+   "mean": 0.30282845528279545,
+   "std": 0.012131534548422295
+  },
+  "end-of-run score": {
+   "mean": 5.15443536585505,
+   "std": 0.4613881248675653
+  },
+  "full agent replay": {
+   "mean": 22.04037894889457,
+   "std": 0.1441142609073576
+  }
+ },
+ "ms_per_action_replay": 1.1600199446786617,
+ "parse_ms_per_run_upper_bound": 5.1121628048698105,
+ "model_fit_seconds": 2.235691099995165,
+ "peak_traced_python_memory_mb_fit_and_replay": 5.597397,
+ "tool_calls_per_run": 16.04,
+ "verifier": {
+  "ms_per_run": 75702.10970464136,
+  "std_ms": 29004.29606878162,
+  "hardware": "Kaggle 2 x Tesla T4, 4-bit GGUF",
+  "gpu_memory_gb_approx": 24,
+  "setup_minutes_approx": 30,
+  "n_runs": 237
+ },
+ "judge": {
+  "ms_per_run": 10020.0,
+  "hardware": "RTX 4050 6 GB, Ollama, 4-bit",
+  "n_runs": 50,
+  "parse_failures": 0
+ },
+ "share_of_verifier_latency": {
+  "full agent replay": 0.00029114616534317345,
+  "end-of-run score": 6.808839787907558e-05,
+  "feature extraction + end-of-run score": 7.208866228999237e-05
+ },
+ "share_of_judge_latency": {
+  "full agent replay": 0.0021996386176541486
+ },
+ "usage_in_e3_test": {
+  "mean_tokens_watched_per_run": 13394.824041811848,
+  "mean_tokens_after_aborts_per_run": 12079.486933797909,
+  "llm_tokens_used_by_agent": 0
+ },
+ "reliability": {
+  "runs_replayed": 1148,
+  "failed_tool_calls": 0,
+  "determinism": "same decisions on repeat, verified 1,148 of 1,148",
+  "fail_open": "tested: a failing model keeps the run going; a failing final score sends it to a human (tests/test_governor.py)",
+  "dollar_cost_per_1000_runs": 0.0
+ }
+}

@@ -1,0 +1,114 @@
+{
+ "test": {
+  "runs": 1148,
+  "correct": {
+   "failures_stopped": 729,
+   "passes_reviewed": 78
+  },
+  "wrong": {
+   "missed_failures": 330,
+   "lost_passes": 11,
+   "aborted_passes": 4,
+   "rejected_passes": 7
+  },
+  "reviewed_pass_rate": 0.19117647058823528,
+  "missed_categories": [
+   {
+    "category": "M1 looks verified",
+    "missed_failures": 285,
+    "share_of_missed": 0.8636363636363636,
+    "reviewed_runs_of_this_kind": 361,
+    "pass_rate_of_this_kind": 0.21052631578947367,
+    "median_actions": 18.0,
+    "median_patch_lines": 28.0
+   },
+   {
+    "category": "M2 check not green",
+    "missed_failures": 31,
+    "share_of_missed": 0.09393939393939393,
+    "reviewed_runs_of_this_kind": 31,
+    "pass_rate_of_this_kind": 0.0,
+    "median_actions": 17.0,
+    "median_patch_lines": 28.0
+   },
+   {
+    "category": "M3 not verified",
+    "missed_failures": 14,
+    "share_of_missed": 0.04242424242424243,
+    "reviewed_runs_of_this_kind": 16,
+    "pass_rate_of_this_kind": 0.125,
+    "median_actions": 13.0,
+    "median_patch_lines": 14.0
+   }
+  ],
+  "rejected_pass_lowest_factor": {
+   "patch_lines": 5,
+   "n_steps": 2
+  },
+  "abort_steps_of_lost_passes": {
+   "5.0": 4
+  },
+  "hint_false_alarms": {
+   "passing_runs_hinted": 23,
+   "hinted_runs": 578,
+   "by_pattern_on_passing": {
+    "repeat_loop": 23
+   }
+  }
+ },
+ "lite": {
+  "runs": 1119,
+  "correct": {
+   "failures_stopped": 187,
+   "passes_reviewed": 357
+  },
+  "wrong": {
+   "missed_failures": 544,
+   "lost_passes": 31,
+   "aborted_passes": 0,
+   "rejected_passes": 31
+  },
+  "reviewed_pass_rate": 0.39622641509433965,
+  "missed_categories": [
+   {
+    "category": "M1 looks verified",
+    "missed_failures": 433,
+    "share_of_missed": 0.7959558823529411,
+    "reviewed_runs_of_this_kind": 757,
+    "pass_rate_of_this_kind": 0.42800528401585203,
+    "median_actions": 18.0,
+    "median_patch_lines": 53.0
+   },
+   {
+    "category": "M2 check not green",
+    "missed_failures": 50,
+    "share_of_missed": 0.09191176470588236,
+    "reviewed_runs_of_this_kind": 68,
+    "pass_rate_of_this_kind": 0.2647058823529412,
+    "median_actions": 30.0,
+    "median_patch_lines": 68.5
+   },
+   {
+    "category": "M3 not verified",
+    "missed_failures": 61,
+    "share_of_missed": 0.11213235294117647,
+    "reviewed_runs_of_this_kind": 76,
+    "pass_rate_of_this_kind": 0.19736842105263158,
+    "median_actions": 30.0,
+    "median_patch_lines": 67.0
+   }
+  ],
+  "rejected_pass_lowest_factor": {
+   "patch_lines": 29,
+   "max_identical_streak": 2
+  },
+  "abort_steps_of_lost_passes": {},
+  "hint_false_alarms": {
+   "passing_runs_hinted": 134,
+   "hinted_runs": 431,
+   "by_pattern_on_passing": {
+    "repeat_loop": 134
+   }
+  }
+ }
+}

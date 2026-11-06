@@ -1,0 +1,282 @@
+[
+ {
+  "method": "length_only",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.12527296408572144,
+  "macro_f1": 0.5440012970168612,
+  "f1_pass": 0.18333333333333332,
+  "threshold": 0.14888088139804065
+ },
+ {
+  "method": "length_only",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.1382434782113638,
+  "macro_f1": 0.5202285061411025,
+  "f1_pass": 0.19555555555555557,
+  "threshold": 0.14888088139804065
+ },
+ {
+  "method": "length_only",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.4291943458434388,
+  "macro_f1": 0.5279766491010016,
+  "f1_pass": 0.4795539033457249,
+  "threshold": 0.14888088139804065
+ },
+ {
+  "method": "length_only",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.1367168622558696,
+  "macro_f1": 0.15977575332866154,
+  "f1_pass": 0.31955150665732307,
+  "threshold": 0.14888088139804065
+ },
+ {
+  "method": "empty_patch",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.1278735632183908,
+  "macro_f1": 0.47983688264612595,
+  "f1_pass": 0.0,
+  "threshold": 0.13881131459877538
+ },
+ {
+  "method": "empty_patch",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.1278735632183908,
+  "macro_f1": 0.4658480429777437,
+  "f1_pass": 0.0,
+  "threshold": 0.13881131459877538
+ },
+ {
+  "method": "empty_patch",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.3554788610871441,
+  "macro_f1": 0.39627391742195367,
+  "f1_pass": 0.0,
+  "threshold": 0.13881131459877538
+ },
+ {
+  "method": "empty_patch",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.2087912087912088,
+  "macro_f1": 0.44746543778801845,
+  "f1_pass": 0.0,
+  "threshold": 0.13881131459877538
+ },
+ {
+  "method": "prompt_only",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.14323682002961255,
+  "macro_f1": 0.5688823410463067,
+  "f1_pass": 0.21212121212121213,
+  "threshold": 0.13394874879522614
+ },
+ {
+  "method": "prompt_only",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.21458218769000809,
+  "macro_f1": 0.5783745133868277,
+  "f1_pass": 0.25609756097560976,
+  "threshold": 0.13394874879522614
+ },
+ {
+  "method": "prompt_only",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.3172347206613011,
+  "macro_f1": 0.39383215369059654,
+  "f1_pass": 0.0,
+  "threshold": 0.13394874879522614
+ },
+ {
+  "method": "prompt_only",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.14331437156638882,
+  "macro_f1": 0.44746543778801845,
+  "f1_pass": 0.0,
+  "threshold": 0.13394874879522614
+ },
+ {
+  "method": "telemetry_lr",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.21048515136507875,
+  "macro_f1": 0.5831497963254543,
+  "f1_pass": 0.28213166144200624,
+  "threshold": 0.1749967564198467
+ },
+ {
+  "method": "telemetry_lr",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.21048515136507878,
+  "macro_f1": 0.5343556722867068,
+  "f1_pass": 0.28213166144200624,
+  "threshold": 0.1749967564198467
+ },
+ {
+  "method": "telemetry_lr",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.44391439514065245,
+  "macro_f1": 0.5837546311123765,
+  "f1_pass": 0.4393358876117497,
+  "threshold": 0.1749967564198467
+ },
+ {
+  "method": "telemetry_lr",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.3125901690622042,
+  "macro_f1": 0.3841747907955615,
+  "f1_pass": 0.3703071672354949,
+  "threshold": 0.1749967564198467
+ },
+ {
+  "method": "telemetry_gbm",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.23883799822606339,
+  "macro_f1": 0.5989561850246222,
+  "f1_pass": 0.2782608695652174,
+  "threshold": 0.22742288321833193
+ },
+ {
+  "method": "telemetry_gbm",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.2388379982260634,
+  "macro_f1": 0.5677018633540373,
+  "f1_pass": 0.2782608695652174,
+  "threshold": 0.22742288321833193
+ },
+ {
+  "method": "telemetry_gbm",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.43749004780284695,
+  "macro_f1": 0.538331713987549,
+  "f1_pass": 0.3184713375796178,
+  "threshold": 0.22742288321833193
+ },
+ {
+  "method": "telemetry_gbm",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.35466654765589745,
+  "macro_f1": 0.5238424427840207,
+  "f1_pass": 0.41304347826086957,
+  "threshold": 0.22742288321833193
+ },
+ {
+  "method": "telemetry20_lr",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.25500026335842746,
+  "macro_f1": 0.6264993814473159,
+  "f1_pass": 0.3346613545816733,
+  "threshold": 0.21730163575988046
+ },
+ {
+  "method": "telemetry20_lr",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.25500026335842746,
+  "macro_f1": 0.59414925748365,
+  "f1_pass": 0.3346613545816733,
+  "threshold": 0.21730163575988046
+ },
+ {
+  "method": "telemetry20_lr",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.45277225587068526,
+  "macro_f1": 0.5862109566904997,
+  "f1_pass": 0.42953020134228187,
+  "threshold": 0.21730163575988046
+ },
+ {
+  "method": "telemetry20_lr",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.3043546792041534,
+  "macro_f1": 0.5333111466419719,
+  "f1_pass": 0.19701492537313434,
+  "threshold": 0.21730163575988046
+ },
+ {
+  "method": "telemetry20_gbm",
+  "set": "SWE-Gym test",
+  "runs": 1148,
+  "base_rate": 0.07752613240418119,
+  "auprc": 0.2165152850444203,
+  "macro_f1": 0.6127478078115204,
+  "f1_pass": 0.3202846975088968,
+  "threshold": 0.18613464059827928
+ },
+ {
+  "method": "telemetry20_gbm",
+  "set": "SWE-Gym test, non-empty",
+  "runs": 696,
+  "base_rate": 0.1278735632183908,
+  "auprc": 0.21651776896106006,
+  "macro_f1": 0.5741837528948625,
+  "f1_pass": 0.3202846975088968,
+  "threshold": 0.18613464059827928
+ },
+ {
+  "method": "telemetry20_gbm",
+  "set": "OpenHands Lite",
+  "runs": 1199,
+  "base_rate": 0.34361968306922436,
+  "auprc": 0.46973730184664547,
+  "macro_f1": 0.602334167709637,
+  "f1_pass": 0.47,
+  "threshold": 0.18613464059827928
+ },
+ {
+  "method": "telemetry20_gbm",
+  "set": "Moatless 32b_8runs",
+  "runs": 2398,
+  "base_rate": 0.1901584653878232,
+  "auprc": 0.3279511660972237,
+  "macro_f1": 0.5708337208744001,
+  "f1_pass": 0.2728512960436562,
+  "threshold": 0.18613464059827928
+ }
+]
