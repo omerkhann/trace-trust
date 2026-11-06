@@ -1,171 +1,269 @@
-# TraceTrust-SE: Phase 1 baseline
-
-TraceTrust predicts whether a software-engineering agent’s run has succeeded, using only its execution trace. It converts raw agent logs (OpenHands, MoatlessTools) into a shared step schema, extracts telemetry features such as error loops, step counts and test behaviour, and trains lightweight classifiers that output a calibrated trust score with feature-level explanations. Following SWE-Gym (Pan et al., ICML 2025), it compares against the SWE-Gym 32B verifier, a zero-shot LLM judge and simple baselines. It reports within-task AUROC (separating passed and failed runs of the same task) alongside pooled AUROC and calibration error. A replay-mode governance agent uses the score to decide whether to continue, hint or stop a run.
+# TraceTrust: observability and runtime governance for software-engineering agents
 
 AI4015 Agentic AI, project **G2-09** (*Observability and Trust in Agentic AI for Software Engineering*).
 Muhammad Omer Khan (23I-0650). Base paper: SWE-Gym (Pan et al., ICML 2025).
 
-Given the execution trace of an OpenHands software-engineering agent, predict whether the run
-resolved its task (its final patch passes the hidden tests). The output is a calibrated
-probability that can serve as a trust score, rank runs of the same task (best-of-n), or flag runs
-for review.
+TraceTrust watches a software-engineering agent's execution trace, step by step, and turns it into a calibrated trust
+score and a governance decision. It answers two questions: will this run resolve its task, and what should be done
+about it? It uses cheap telemetry from the trace, not an expensive LLM verifier.
 
-This repository is the **Phase 1 technical foundation**: data pipeline, structured contracts, the
-baselines from the proposal (§B.10), and the evaluation protocol with initial results. The design
-is in [docs/architecture.md](docs/architecture.md).
+**Main finding.** Telemetry reliably catches runs that did nothing and saves reviewers about two-thirds of their work,
+across two agent frameworks. It cannot yet tell a correct patch from a plausible wrong one, it gives little warning early
+in a run, and it doesn't save compute once failed attempts are retried.
 
-## Quick start
+- [Architecture](#architecture) | [Install and run](#install-and-run) | [Reproduce each experiment](#reproduce-each-experiment) | [Results](#results) | [Gap-resolution table](#gap-resolution-table) | [Failure analysis](#failure-analysis) | [Changes since Phase 1](#changes-since-phase-1) | [Limitations](#limitations)
+- Development log: [docs/devlog.md](docs/devlog.md). Design details: [docs/architecture.md](docs/architecture.md).
 
-Requires Python 3.11 and [uv](https://docs.astral.sh/uv/) (or plain `pip`). Windows paths are shown; on
-Linux/macOS use `.venv/bin/python`.
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Logged runs<br/>OpenHands, MoatlessTools] --> B[Scaffold adapters and normalizer<br/>Step, Trace<br/><b>Gap 2</b>]
+    B --> C[Telemetry<br/>PrefixState live, 20 run features<br/><b>Gap 3</b>]
+    C --> D[Risk models and calibration<br/>thresholds from dev, SHAP<br/><b>Gaps 1, 3</b>]
+    D --> E[Governance agent<br/>observe, score, detect, decide, act]
+    E --> F{Decision}
+    F -->|run continues| G[CONTINUE or INJECT_HINT]
+    G --> E
+    F -->|end of run, trusted| H[FLAG_FOR_REVIEW<br/>human reviews]
+    F -->|low trust| I[ABORT or REJECT<br/>human gate can overrule]
+    I -->|next attempt| A
+    E --> J[(JSONL logs)]
+```
+
+**The agent** ([src/agent/](src/agent/)) replays a logged run and intercepts each action before it takes effect:
+
+| Step | Tool | What happens |
+|---|---|---|
+| 1 | `score_prefix_risk` | At 5, 10, 15, 20, 30, 40 actions, score the run with a calibrated model |
+| 2 | `abort_run` | Stop if risk passes the threshold, only at checkpoints with enough signal on dev (5 and 10) |
+| 3 | `detect_patterns`, `inject_hint` | Check rule-based patterns; send a fixed hint for ones that passed a dev filter |
+| 4 | `score_final_risk` | At the end, score the run with its patch: `REJECT`, or `FLAG_FOR_REVIEW`, with the top-3 factors |
+
+Nothing is accepted automatically: at an 8% pass rate even high-trust runs mostly fail. After `ABORT` or `REJECT`, the agent moves to
+another logged attempt at the same task. A human can approve, override or stop any `ABORT` or `REJECT` (`--interactive`). If a tool
+fails, the agent logs it and fails open. The agent never reads the label, and reads the final patch only at the last step
+(both enforced by tests).
+
+**The agent does not use an LLM.** It uses logistic regression and fixed rules, as proposed in Phase 1. The LLMs are the agents being
+observed and the two baselines (7B judge, 32B verifier). It runs in replay: logged runs can't react, so hints are logged but their
+effect can't be measured.
+
+| Gap | Component | Off switch |
+|---|---|---|
+| 1, calibration | [src/calibration.py](src/calibration.py), [src/agent/risk.py](src/agent/risk.py) | `--no-calibration` |
+| 2, cross-framework | [src/data/moatless.py](src/data/moatless.py), [src/data/swebench_lite.py](src/data/swebench_lite.py) | `--no-normalizer` |
+| 3, telemetry and early warning | [src/features.py](src/features.py), [src/prefix.py](src/prefix.py), [src/agent/patterns.py](src/agent/patterns.py) | `--no-telemetry`, `--no-early-warning`, `--no-hints` |
+
+## Install and run
+
+Python 3.11, on Windows (paths shown) or Linux/macOS (use `.venv/bin/python`). No GPU or paid API is needed for the agent.
 
 ```bash
 uv venv --python 3.11
 uv pip install --python .venv -r requirements.txt
-
-.venv/Scripts/python -m src.run_baseline            # downloads ~300 MB on first run, then ~1 min
-.venv/Scripts/python -m pytest -q                   # unit tests
+.venv/Scripts/python -m pytest -q                        # 68 tests
 ```
 
-`run_baseline` downloads the dataset from Hugging Face, parses every trace, builds features and
-folds, runs the baselines (5-fold CV on dev, then the held-out test set), and writes `results/`. Each stage caches
-its output in `data/`; pass `--refresh` to rebuild.
-
-### LLM-judge baseline (optional)
+The first command that needs data downloads it from Hugging Face. `data/` is gitignored, except `splits.csv` (fixed splits), `verifier_scores_lite.csv`
+(from about 4.5 hours on Kaggle) and `llm_judge_cache.jsonl` (judge replies). `.env` is only needed to re-query the LLM judge; see [.env.example](.env.example).
 
 ```bash
-cp .env.example .env        # then pick a provider
-.venv/Scripts/python -m src.run_baseline --with-llm
+.venv/Scripts/python -m src.run_baseline                  # about 3 min; builds the features the agent trains on
+.venv/Scripts/python -m src.prefix --lite                 # prefix features for the checkpoints
+.venv/Scripts/python -m src.agent.cli models              # fitted models and thresholds
+.venv/Scripts/python -m src.agent.cli replay --uid s0r100 # one run, step by step
+.venv/Scripts/python -m src.agent.cli replay --uid s0r100 --interactive   # you approve or override
+.venv/Scripts/python -m src.agent.cli task --instance Project-MONAI__MONAI-2446   # abort and reroute across attempts
 ```
 
-| `LLM_PROVIDER` | setup |
+Logs go to `logs/<config>/<run>.jsonl`, one line per action. A sample is committed in [logs/sample/](logs/sample/).
+
+## Reproduce each experiment
+
+Data volumes: SWE-Gym 300 MB, OpenHands Lite 430 MB, MoatlessTools 440 MB. Seeds 42, 43, 44; bootstrap 1,000 task resamples. Times are on a laptop CPU.
+
+| Experiment | Command | Output in `results/` |
+|---|---|---|
+| **E1** baselines | `python -m src.run_baseline --with-llm` | `metrics.*`, `reliability.png` |
+| **E2** base paper | [experiments/kaggle_verifier.ipynb](experiments/kaggle_verifier.ipynb) (optional, scores are committed), then `python -m experiments.compare_verifier_lite` | `verifier_vs_telemetry_lite.*` |
+| Verifier contamination | `python -m experiments.verifier_overlap` | `verifier_overlap.json` |
+| **E3, E5** full system, ablation | `python -m experiments.governor_eval` (15 min) | `governor_eval.*`, `governor_outcomes_*.csv` |
+| Agent settings, dev only | `python -m experiments.governor_tuning` | `governor_tuning.*` |
+| **E4 Gap 1** | `python -m experiments.calibration` | `calibration.*` |
+| **E4 Gap 2** | `python -m experiments.transfer_swebench_lite`, `python -m experiments.transfer_moatless` (25 min), `python -m experiments.gap2_paired` | `transfer_*`, `gap2_*` |
+| **E4 Gap 3** | `python -m experiments.early_warning`, `feature_eval`, `explain`, `hybrid` (each `python -m experiments.<name>`) | `early_warning.*`, `feature_eval.*`, `shap_importance.*`, `hybrid_verifier.*` |
+| **E6** cost, latency | `python -m experiments.efficiency` | `efficiency.*` |
+| Failure analysis | `python -m experiments.failure_analysis` (after E3) | `failure_analysis.*`, `failure_cases.md`, `logs/sample/` |
+| Validity checks | `python -m experiments.label_noise`, `extra_metrics`, `empty_workspace_check` | `label_noise.*`, `extra_metrics.*`, `empty_workspace_check.json` |
+| Paper figures | `python -m experiments.figures` | `figures/` |
+
+Run `.venv/Scripts/python`, not bare `python`. Timing numbers in `efficiency.*` vary by machine; everything else should match exactly.
+
+**Evaluation rules.** All tuning uses dev: 80% of SWE-Gym tasks, with `GroupKFold` by task. The test set (20% of tasks, 488 tasks, 1,148 runs) is fixed in `data/splits.csv`.
+The agent was locked at commit `4a3b1a6` before it ever ran on test, and E3/E5 ran once. SWE-bench Lite and MoatlessTools are never tuned on; a small number of labelled Lite
+tasks may set the pass rate where stated. Features never include `test_result.report`, `test_output` or `apply_patch_output`, which contain the label.
+
+## Results
+
+Data: 6,055 SWE-Gym OpenHands runs (GPT-4o 5,826, Claude 229; 8.1% pass), 1,199 OpenHands runs on SWE-bench Lite (34% pass; unseen repositories), and 2,997
+MoatlessTools runs on Lite (open-weight Qwen fine-tunes; main set 2,398 runs, 8 attempts per task, 19% pass).
+
+### E1, E2: predictors
+
+SWE-Gym held-out test (1,148 runs, 38 mixed tasks, 195 same-task pairs):
+
+| Method | Pooled AUROC [95% CI] | Within-task AUROC [95% CI] | ECE |
+|---|---|---|---|
+| `length_only` | 0.695 [0.643, 0.743] | 0.733 [0.584, 0.862] | 0.037 |
+| `empty_patch` | 0.713 [0.694, 0.732] | 0.703 [0.653, 0.769] | 0.029 |
+| `prompt_only` | 0.657 [0.576, 0.730] | 0.500 (by construction) | 0.029 |
+| `telemetry_lr` (11 features) | 0.812 [0.773, 0.853] | 0.764 [0.626, 0.859] | 0.019 |
+| `telemetry20_lr` (20 features) | **0.836** [0.796, 0.878] | **0.779** [0.681, 0.864] | **0.014** |
+| `telemetry_gbm` (11 features) | 0.835 [0.800, 0.871] | 0.749 [0.609, 0.855] | 0.024 |
+| `telemetry20_gbm` (20 features) | 0.835 [0.801, 0.875] | 0.749 [0.620, 0.857] | 0.031 |
+
+On runs that changed code (696 runs), `telemetry20_lr` gets 0.714 pooled and 0.629 within-task [0.500, 0.753]. AUPRC 0.255 at a 0.078 base rate; macro-F1 0.626 ([extra_metrics.md](results/extra_metrics.md)).
+
+**Base paper, reproduced by us.** SWE-Gym's 32B verifier can't be fairly scored on SWE-Gym's own runs: it trained on 53.4% of those tasks, including every task with a passing run
+([verifier_overlap.json](results/verifier_overlap.json)). So we ran it on 237 clean Lite runs (4-bit GGUF, Kaggle 2 x T4; 79 mixed tasks, 158 pairs):
+
+| Method, same 237 runs | Pooled | Within-task | ECE |
+|---|---|---|---|
+| 32B verifier (reproduced) | 0.734 | 0.741 | 0.290 |
+| `length_only` | 0.691 | 0.696 | 0.241 |
+| `telemetry_gbm` | 0.609 | 0.665 | 0.363 |
+| `telemetry20_lr` | 0.624 | 0.627 | 0.327 |
+
+The verifier ranks significantly better than `telemetry_lr` (within-task +0.152 [+0.044, +0.266]) but not than two length features (+0.044 [-0.038, +0.139]).
+SWE-Gym reports the verifier only through Best@k (26.0% on Lite at k = 16, taken from the paper; not comparable to our sample).
+
+### E3, E5: the agent, with each component removed
+
+SWE-Gym test, once, 89 passing runs (so "passes lost" has wide intervals):
+
+| Config | Failures stopped | Passes lost | Runs reviewed | Pass rate in review | Tokens saved |
+|---|---|---|---|---|---|
+| **Full agent** | 68.8% [65.1, 72.3] | 12.4% [3.9, 20.3] | 35.5% [32.0, 39.3] | 19.1% [14.5, 23.9] | 9.8% [7.6, 12.2] |
+| No calibration | same as full | same | same | same | same |
+| No early warning | 65.8% [62.1, 69.3] | 11.2% [3.9, 18.4] | 38.4% [35.0, 42.0] | 17.9% [13.7, 22.4] | 0 |
+| No telemetry | 37.9% [33.6, 42.1] | 6.7% [2.3, 12.5] | 64.5% [60.7, 68.6] | 11.2% [8.5, 14.4] | 0 |
+| Empty-patch rule (comparison) | 42.7% [38.8, 46.4] | 0 | 60.6% [57.0, 64.4] | 12.8% [9.7, 16.2] | 0 |
+
+Calibration changes nothing in-domain, as expected; hints change no outcome, by construction in replay. On SWE-bench Lite (K = 20 labelled tasks, mean over 3 draws), **calibration holds the false-alarm budget**:
+8.3% of passes lost against the 10% budget, versus 20.9% without it. It also stops fewer failures (26.2% vs 48.9%). Early warning contributes nothing there.
+
+Task-level, with reroute (488 tasks, 3 seeds):
+
+| Policy | Tasks solved | Tokens per task | Reviews per task |
+|---|---|---|---|
+| One random attempt | 8.6% ± 0.7 | 14,099 | 1.00 |
+| Empty-patch rule + reroute | 10.1% ± 0.6 | 18,875 | 0.82 |
+| **Agent + reroute** | 10.1% ± 0.5 | 20,094 | 0.53 |
+| Review every attempt | 12.9% | 31,511 | 2.15 |
+
+The agent solves the same share as the simple rule, with 35% fewer reviews and 6% more tokens. The gain is reviewer time, not compute.
+
+### E4: by gap
+
+**Gap 1.** The Wilcoxon test confirms within-task ranking above chance (p < 0.001). Verifier ECE falls from 0.290 to 0.100 with Platt scaling (cross-fitted). Monotone calibration leaves Best@k unchanged. H1 (pooled AUROC overstates within-task) isn't supported: the gap's interval contains 0 on test, and it's negative for some methods on dev.
+
+**Gap 2** ([gap2_moatless.md](results/gap2_moatless.md), [gap2_paired.md](results/gap2_paired.md)). Models fit on OpenHands, applied to MoatlessTools with nothing tuned:
+
+| Method | SWE-Gym test | OpenHands, Lite | Moatless, normalized | Moatless, raw | Drop (normalized) | Retained | Within-task, normalized |
+|---|---|---|---|---|---|---|---|
+| `telemetry_lr` | 0.812 | 0.655 | 0.723 | 0.657 | 0.089 | 89% | 0.671 [0.606, 0.739] |
+| `telemetry_gbm` | 0.835 | 0.636 | 0.740 | 0.731 | 0.095 | 89% | 0.686 [0.629, 0.743] |
+| `telemetry20_lr` | 0.836 | 0.659 | 0.712 | 0.683 | 0.124 | 85% | 0.664 [0.600, 0.729] |
+| `telemetry20_gbm` | 0.835 | 0.655 | 0.725 | 0.679 | 0.110 | 87% | 0.659 [0.587, 0.728] |
+
+The normalizer's gain is significant for LR on the main set (+0.066 and +0.028 pooled), not reliably otherwise. Length reverses across frameworks (0.347, below chance). The agent's abort doesn't transfer: on MoatlessTools it costs more passes (16.7 points) than the failures it adds (12.6), and the simple rule beats the agent (20.7% vs 19.2% solved).
+
+**Gap 3** ([shap_importance.md](results/shap_importance.md), [hybrid_verifier.md](results/hybrid_verifier.md), [early_warning.md](results/early_warning.md)). `patch_empty` ranks first on every dataset, and patch features hold about half of total SHAP. H3's named signals don't lead: `max_identical_streak` ranks 8, `error_responsiveness` 18, `thought_action_mismatch` 17 of 20.
+The primary hybrid (verifier + `telemetry20_lr`) misses its target: 0.677 vs 0.741 within-task (difference -0.063 [-0.158, +0.019]), though ECE improves to 0.084. Live early warning is weak: AUROC 0.65 and 24.1% failure recall after 5 actions, near chance from 15 actions.
+
+### E6: efficiency and reliability
+
+| Step | Time per run |
 |---|---|
-| `ollama` (default, used for the results below) | install [Ollama](https://ollama.com), then `ollama pull qwen2.5-coder:7b` (fits in 6 GB VRAM) |
-| `groq` / `openrouter` | open-weight models on free tiers; key in `GROQ_API_KEY` / `OPENROUTER_API_KEY` |
-| `gemini` | closed-weight fallback only; free key from Google AI Studio in `GEMINI_API_KEY` |
+| Feature extraction | about 0.3 ms |
+| End-of-run score | about 5 ms |
+| Full agent replay (19 actions on average) | about 20 ms, about 1 ms per action |
+| 7B judge (RTX 4050) | 10.0 s |
+| 32B verifier (Kaggle 2 x T4) | 75.7 s |
 
-The judge runs on a fixed 50-run sample and caches every reply in `data/llm_judge_cache.jsonl`.
+The agent takes about 0.03% of the verifier's time, on different hardware. It uses no LLM tokens, GPU or paid API. Reliability: 0 failed tool calls in E3, identical decisions on repeat (1,148 of 1,148), and fail-open behavior covered by tests. With 7.8% of passing labels flipped, results barely move: pooled 0.836 to 0.839, within-task 0.779 to 0.765 ([label_noise.md](results/label_noise.md)).
 
-## Data
+## Gap-resolution table
 
-[`SWE-Gym/OpenHands-Sampled-Trajectories`](https://huggingface.co/datasets/SWE-Gym/OpenHands-Sampled-Trajectories):
-6,055 OpenHands runs (GPT-4o 5,826, Claude 3.5 Sonnet 229) on 2,438 SWE-Gym tasks from 11 Python
-repositories, 1 to 10 runs per task.
+Base-paper columns: SWE-Gym reports only Best@k, so "reproduced" values are our own run of its verifier on 237 Lite runs.
 
-| | |
-|---|---|
-| resolved rate | 8.1% |
-| tasks with only failed runs / only resolved runs / both | 2,144 / 106 / 188 |
-| runs in mixed tasks | 1,037 (1,394 same-task pass/fail pairs) |
+| Gap | Method / component | Metric | Base paper result | Our result | Addressed? |
+|---|---|---|---|---|---|
+| **1** Within-task discrimination and calibration | Within-task evaluation, prior-shift and Platt calibration | Within-task AUROC ≥ 0.68, p < 0.01 | Not reported; reproduced 0.741 on Lite | 0.779 [0.681, 0.864], p < 0.001 on SWE-Gym test; 0.627 on the verifier's Lite runs | **Partially** |
+| | | ECE cut ≥ 40%, to ≤ 0.06 | Not reported; reproduced ECE 0.290 | 0.100 (66% cut); ≤ 0.06 not met | |
+| | | Best@k not harmed | 26.0% at k = 16 (from paper) | Unchanged by monotone calibration | |
+| **2** Cross-framework transfer | Scaffold adapters and normalizer, OpenHands to MoatlessTools | AUROC drop ≤ 0.08 (≥ 85% retained) | Single scaffold, not tested | Drop 0.089-0.124 (not met); 85-89% retained (met) | **Partially** |
+| | | Raw features drop > 0.20 | Not tested | 0.10-0.16: not supported | |
+| | | Agent decisions transfer | Not tested | Abort doesn't transfer | |
+| **3** Explainable telemetry, early warning | 20 features, linear SHAP, hybrid, prefix monitor, governance agent | ≥ 90% of verifier's within-task AUROC, < 1% latency | Reproduced 0.741, 75.7 s/run | 85% (`telemetry20_lr`), 90% (`telemetry_gbm`); about 0.03% latency | **Partially** |
+| | | Hybrid adds ≥ 0.02 | Not reported | -0.063 [-0.158, +0.019]: not met | |
+| | | ≥ 60% failure recall at 50% prefix, 10% FAR, ≥ 25% tokens saved | Post-hoc only | 58.7%, 50.1% saved, using a length leak; live: 24.1% at 5 actions, 23.5% saved: not met | |
+| | | H3's named signals rank top in SHAP | Black box | Not supported; top is `patch_empty` | |
 
-**Leakage rule:** `test_result.report`, `test_output` and `apply_patch_output` are never read as
-features, because they contain the label. Only the trajectory and the final git patch are used.
+## Failure analysis
 
-## Pipeline
+Wrong decisions on test ([failure_analysis.md](results/failure_analysis.md)); representative trajectories, chosen by a fixed rule, are in [failure_cases.md](results/failure_cases.md).
 
-```
-HF Hub -> loader (light columns) -> parser (streams row groups -> Trace) -> features (RunFeatures, TaskFeatures)
-       -> splits (fixed dev/test by task, GroupKFold on dev, 50-run judge sample) -> baselines -> metrics -> results/
-```
-
-| module | role |
-|---|---|
-| [src/data/loader.py](src/data/loader.py) | download shards, light metadata table, dataset stats |
-| [src/data/parser.py](src/data/parser.py) | OpenHands messages -> `Trace` of typed `Step`s (tool, command, path, exit code, error) |
-| [src/schema.py](src/schema.py) | Pydantic contracts passed between every stage |
-| [src/features.py](src/features.py) | telemetry features per run + pre-execution task features |
-| [src/eval/splits.py](src/eval/splits.py) | fixed dev/test split by task, 5-fold GroupKFold on dev, judge sample -> [data/splits.csv](data/splits.csv) |
-| [src/eval/metrics.py](src/eval/metrics.py) | pooled AUROC, within-task AUROC, Brier, ECE |
-| [src/baselines/tabular.py](src/baselines/tabular.py) | length-only, prompt-only, telemetry LogReg / GBM |
-| [src/llm/provider.py](src/llm/provider.py) | `LLMProvider` interface: Ollama + OpenAI-compatible free tiers |
-| [src/baselines/llm_judge.py](src/baselines/llm_judge.py) | zero-shot LLM judge with JSON-validated verdicts |
-| [src/baselines/verifier_stub.py](src/baselines/verifier_stub.py) | `Verifier` interface for the SWE-Gym 32B verifier (Phase 2, Kaggle) |
-| [src/run_baseline.py](src/run_baseline.py) | end-to-end runner |
-
-## Evaluation protocol
-
-- **Splits** ([data/splits.csv](data/splits.csv), committed, built by `python -m src.eval.splits --rebuild`):
-  20% of tasks (488 tasks, 1,148 runs) are a held-out **test** set, used only for final numbers.
-  Mixed tasks are split separately so test gets its share of them (38 of 188). The other 80%
-  (**dev**) is split with `GroupKFold(5)` on `instance_id`; model selection, calibration fitting and
-  threshold tuning use dev only. No task appears in more than one fold or in both dev and test.
-  All methods share the same assignment.
-- **Reported numbers:** out-of-fold on dev, and on test after refitting on all of dev.
-- **Pooled AUROC:** over all predictions in the evaluation set.
-- **Within-task AUROC:** over tasks with both resolved and unresolved runs, the share of same-task
-  (pass, fail) pairs ranked correctly. It removes task difficulty and measures what best-of-n
-  selection needs (proposal Gap 1).
-- **Calibration:** Brier score, ECE over 15 equal-mass bins, reliability diagram.
-
-## Initial results
-
-Held-out test set, 1,148 runs, 38 mixed tasks / 195 same-task pairs (from [results/metrics.md](results/metrics.md)):
-
-| method | pooled AUROC | within-task AUROC | Brier | ECE |
-|---|---|---|---|---|
-| length_only | 0.695 | 0.733 | 0.0703 | 0.0368 |
-| prompt_only | 0.657 | 0.500 | 0.0699 | 0.0294 |
-| telemetry_lr | 0.812 | **0.764** | **0.0657** | **0.0190** |
-| telemetry_gbm | **0.835** | 0.749 | 0.0661 | 0.0238 |
-
-Dev, out-of-fold, 4,907 runs, 150 mixed tasks / 1,199 pairs:
-
-| method | pooled AUROC | within-task AUROC | Brier | ECE |
-|---|---|---|---|---|
-| length_only | 0.703 | 0.818 | 0.0729 | 0.0166 |
-| prompt_only | 0.638 | 0.500 | 0.0740 | 0.0140 |
-| telemetry_lr | **0.844** | **0.865** | **0.0654** | **0.0094** |
-| telemetry_gbm | 0.842 | 0.847 | 0.0662 | 0.0216 |
-
-![Reliability diagram](results/reliability.png)
-
-Observations so far:
-
-- Telemetry features beat both simple baselines on discrimination and calibration. The strongest
-  signals ([results/metrics.json](results/metrics.json), `telemetry_lr_coefficients`) are an empty
-  final patch (strongly negative), the number of distinct tools used, run length and patch size.
-- `prompt_only` reaches 0.64 to 0.66 pooled AUROC from task difficulty alone, yet 0.5 within-task by
-  construction. Pooled AUROC alone overstates what a predictor knows about an individual run.
-- H1 (pooled AUROC overstates within-task AUROC) is not settled. On dev, within-task AUROC is
-  higher than pooled; on test it is lower (0.76 vs 0.81 for `telemetry_lr`). Test has only 38 mixed
-  tasks and 195 pairs, so the gap is within noise. Most tasks have 1 to 3 runs, so this needs
-  re-testing with confidence intervals and on the k = 16 evaluation rollouts.
-- On the label-balanced 50-run judge sample, every model's Brier and ECE degrade sharply (ECE about
-  0.4) while its ranking holds. That is prior shift: models fit to an 8% base rate are miscalibrated
-  on a 50% one, the same problem the proposal attributes to the 50/50-trained SWE-Gym verifier.
-
-### Zero-shot LLM judge (50-run sample)
-
-Qwen2.5-Coder-7B via Ollama, 0 parse failures, about 10 s per run on an RTX 4050. Every method
-scored on the same 50 runs (25 test tasks, one resolved and one failed run each; the trained
-models are fit on dev):
-
-| method | pooled AUROC | within-task AUROC | Brier | ECE |
-|---|---|---|---|---|
-| length_only | 0.744 | 0.680 | 0.3946 | 0.4196 |
-| prompt_only | 0.500 | 0.500 | 0.4195 | 0.4090 |
-| telemetry_lr | 0.782 | **0.800** | 0.3751 | 0.3988 |
-| telemetry_gbm | **0.834** | 0.760 | 0.3468 | 0.3818 |
-| llm_judge | 0.750 | 0.740 | **0.2594** | **0.2410** |
-
-- The judge is right on 35 of 50 runs (70%) but ranks runs worse than the telemetry models, at
-  about 10,000x the cost per run.
-- Its confidence is always between 90 and 100, including on the 15 runs it gets wrong. Its stated
-  confidence carries almost no information, so the score comes almost entirely from the PASS/FAIL verdict.
-- Its lower Brier and ECE here are not a calibration win. The sample is 50% resolved, and the judge
-  is not anchored to any base rate, while the trained models are calibrated to the real 8%. It calls
-  7 of 25 failed runs PASS; at the full dataset's 92% failure rate that would label roughly 3 in 10
-  runs PASS when only 8% actually succeed.
+| Category | Count | Note |
+|---|---|---|
+| Missed failure, looks verified: the last check passed after the last edit, and the patch is still wrong | 285 (86.4% of missed) | Same kind of run passes 21.1% of the time, so telemetry can't separate them |
+| Missed failure, last check failed or unknown | 31 (9.4%) | None of this kind passed on test; 26.5% did on Lite |
+| Missed failure, no check after the last edit | 14 (4.2%) | |
+| Lost pass, rejected at the end | 7 | Most-negative factor: large patch (5), long run (2) |
+| Lost pass, aborted early | 4 | All at the 5-action checkpoint |
+| Hint false alarms: passing runs hinted | 23 of 578 hinted | All `repeat_loop` |
 
 ## Changes since Phase 1
 
-- **Held-out test split (Oct 25).** Phase 1 reported 5-fold out-of-fold numbers over all runs, with
-  no data kept back from tuning. Phase 2 tunes calibrators and alarm thresholds, so 20% of tasks
-  are now a fixed test set and the folds cover dev only. The assignment is committed as
-  `data/splits.csv`. The 50-run judge sample is unchanged; its tasks are pinned to test.
+**Evaluation and data**
+- 5-fold CV over everything became a fixed held-out test set plus `GroupKFold` on dev, so tuning can't touch reported numbers.
+- The released runs are GPT-4o and Claude on SWE-Gym training tasks, with no released verifier scores. Report section B.7 had listed repeated SWE-bench rollouts with verifier scores as to be confirmed.
+- The verifier ran on 237 clean Lite runs, not about 500 test runs, because it is contaminated on SWE-Gym's runs.
+- Repository-level splits were not added; Lite and MoatlessTools serve as unseen-repository tests.
+- SWE-agent was not added (it was optional). MoatlessTools is the second framework.
 
-## Roadmap (Phase 2+)
+**Agent**
+- `ABORT_AND_REROUTE` became `ABORT` plus a separate reroute step. `REJECT` and `FLAG_FOR_REVIEW` were added, because auto-accepting at an 8% pass rate would pass mostly failures.
+- Thresholds use a false-alarm budget on dev. The token-budget utility function and conformal thresholds were not built.
+- Hints are fixed text from 2 of 6 candidate patterns, kept by a dev rule. Hint windows like t ≤ 12 were not used.
+- The Streamlit dashboard (optional) was not built.
 
-SWE-Gym 32B verifier scores (Kaggle), prefix features at 25/50/75% for early warning, the full
-20-feature schema, post-hoc and prior-shift calibration, cross-scaffold transfer (MoatlessTools,
-SWE-agent), and the runtime governance monitor.
+**Methods**
+- 20 features as promised, but not the exact list: tokens per step, step variance, phase proportions, 4-gram loops and rollback count were replaced by `phase_entropy`, `max_identical_streak` and others. No scaffold-specific `AgentStepSpan` type: `Step` and `Trace` play that role.
+- The main early-warning result uses absolute checkpoints, because 25/50/75% prefixes need the run's total length, which leaks it. Prefix results are still reported.
+- Temperature scaling wasn't implemented (Platt, isotonic and prior shift were). SHAP is exact linear SHAP on the LR model; TreeSHAP wasn't used.
+- Added beyond the plan: empty-patch baseline, shortcut subsets, task-level bootstrap intervals, contamination check, reroute simulation.
+
+## Limitations
+
+- **Replay.** Logged runs can't react, so hint effects are unmeasured, and reroute draws on other logged attempts.
+- **Small numbers.** Test has 89 passing runs and 38 mixed tasks, so intervals are wide.
+- **Mixed pairs.** Same-task pairs on SWE-Gym and OpenHands Lite partly compare models or versions. MoatlessTools' 8-run set avoids this.
+- **Verifier.** Run 4-bit, not bf16, with truncation to 32k tokens; on a sample of 237; timed on different hardware.
+- **Closed models.** Most SWE-Gym runs come from GPT-4o, which isn't open-weight.
+- **Labels.** Benchmark labels contain false positives (Wang et al., ICSE 2026). Token counts are chars/4 estimates.
+- **Selection on dev.** Settings were chosen after seeing dev; the rules are recorded in the scripts, and test was used once.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| [src/agent/](src/agent/) | Governor loop, risk models, patterns and hints, reroute, CLI |
+| [src/data/](src/data/) | Loaders and adapters: SWE-Gym, SWE-bench Lite, MoatlessTools |
+| [src/](src/) | `schema.py` contracts, `features.py`, `prefix.py`, `calibration.py`, `baselines/`, `eval/`, `llm/` |
+| [experiments/](experiments/) | One script per experiment |
+| [results/](results/) | Every reported number, and paper figures in `figures/` |
+| [logs/sample/](logs/sample/) | Sample agent logs |
+| [tests/](tests/) | Tests for deterministic components |
+| [docs/](docs/) | Development log, architecture, references |

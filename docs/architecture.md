@@ -1,135 +1,67 @@
-# Architecture — Phase 1 Baseline
+# Architecture
 
-Project G2-09 — *Observability and Trust in Agentic AI for Software Engineering* (AI4015 Agentic AI).
-Base paper: SWE-Gym (Pan et al., ICML 2025).
+Project G2-09, *Observability and Trust in Agentic AI for Software Engineering* (AI4015 Agentic AI). Base paper: SWE-Gym (Pan et al., ICML 2025). The diagram is in the [README](../README.md#architecture) and `results/figures/fig_architecture.png`.
 
 ## Problem
 
-Given the **execution trace** of a software-engineering agent (OpenHands, solving a SWE-Gym task),
-predict whether the run **resolved** the task, i.e. whether its final patch passes the hidden tests.
-The output is a calibrated probability `p(resolved | trace)`. A good predictor can serve as a trust
-signal, rank candidate runs (best-of-n), or flag runs that need human review.
+Given a software-engineering agent's execution trace, estimate p(resolved | trace), where resolved means the final patch passes the hidden tests, and decide what to do about the run. The trace is observed step by step, so the agent can only use what a live monitor could see, plus the final patch at the end.
 
-## Data
-
-`SWE-Gym/OpenHands-Sampled-Trajectories`: 6,055 runs, about 300 MB of parquet in 3 shards.
-
-| column | use |
-|---|---|
-| `instance_id` | task id, used as the **group key** for cross-validation |
-| `run_id` | run id |
-| `resolved` | **label** |
-| `messages` | OpenHands trajectory in OpenAI chat format (system / user / assistant with `tool_calls` / tool observations) |
-| `tools` | tool specs (`execute_bash`, `str_replace_editor`, `finish`) |
-| `test_result.git_patch` | the agent's final patch, available at prediction time, so it can be used |
-| `test_result.report`, `test_output` | **label leakage, never used as features** |
-
-## Pipeline
+## Data flow
 
 ```
- HF Hub ──download──► data/raw/*.parquet
-                          │
-          src/data/loader.py   (pyarrow, light columns only)
-                          │──► data/runs_meta.parquet  + dataset stats
-                          │
-          src/data/parser.py   (streams row groups; messages never fully in RAM)
-                          │──► schema.Trace (Pydantic)  ──► src/features.py
-                          │                                   │
-                          │                       data/features.parquet (schema.RunFeatures)
-                          ▼                                   │
-          src/eval/splits.py   dev/test by task, GroupKFold on dev ──► data/splits.csv
-                                                              │
-             ┌───────────────────────────────────────┼───────────────────────┐
-             ▼                                       ▼                       ▼
-  baselines/tabular.py                       baselines/llm_judge.py   baselines/verifier_stub.py
-  length_only · prompt_only ·                (zero-shot, 50-run       (SWE-Gym 32B verifier,
-  telemetry_lr · telemetry_gbm               sample, llm/provider.py)  Phase 2 on Kaggle)
-             └───────────────────────────────────────┴───────────────────────┘
-                                          │ schema.Prediction rows
-                                          ▼
-                          src/eval/metrics.py + report.py
-                 pooled AUROC · within-task AUROC · Brier · ECE · reliability plot
-                                          │
-                                 results/*.json, results/*.png
+OpenHands (SWE-Gym parquet)   -> src/data/parser.py          \
+OpenHands (Lite event stream) -> src/data/swebench_lite.py    -> schema.Trace of schema.Step -> src/features.py  -> RunFeatures
+MoatlessTools (Lite zips)     -> src/data/moatless.py        /                               -> src/prefix.py    -> PrefixFeatures
+                                                                                                      |
+data/splits.csv (fixed) -> src/agent/risk.py: fit on dev, out-of-fold calibration and thresholds  <---+
+                                      |
+                              src/agent/governor.py -> JSONL logs -> experiments/ -> results/
 ```
 
-`python -m src.run_baseline` runs every stage. Each stage reuses its cached output in `data/`
-unless `--refresh` is passed.
+Pydantic models in `src/schema.py` cross every module boundary.
 
-## State / context structure (contracts in `src/schema.py`)
+## Components
 
-| model | role |
+| Module | Role |
 |---|---|
-| `Step` | one agent turn: `index`, `role`, `action_type` (`view`/`edit`/`create`/`bash`/`finish`/`think`/`message`/`observation`), `tool_name`, `command`, `path`, `exit_code`, `is_error`, `tokens` (estimate) |
-| `Trace` | `instance_id`, `run_id`, `resolved` (label, optional at inference), `steps: list[Step]`, `final_patch` |
-| `RunFeatures` | the fixed-width telemetry feature vector extracted from a `Trace` |
-| `TaskFeatures` | pre-execution task features (repo, issue length, code blocks, traceback), prompt-only baseline only |
-| `JudgeVerdict` | structured LLM-judge output: `{verdict: PASS/FAIL, confidence: 0-100, rationale}`, validated from JSON; `p_success` derived |
-| `Prediction` | `uid`, `instance_id`, `method`, `fold`, `p_success`, `label` |
-| `EvalReport` | metrics for one method on one eval set, serialised to `results/metrics.json` |
+| `src/data/parser.py` | Streams OpenHands chat messages into typed `Step`s, without loading the full `messages` column |
+| `src/data/swebench_lite.py` | Rebuilds Lite event streams as chat; `normalize=False` keeps raw v1.9 calls (Gap 2 switch) |
+| `src/data/moatless.py` | MoatlessTools adapter: search to bash, identify to view, edit to edit, plan finish to finish; `normalize=False` keeps raw action names (Gap 2 switch) |
+| `src/features.py` | 11 Phase 1 features, plus `ProgressSignals`: 9 live Phase 2 features shared with prefixes |
+| `src/prefix.py` | `PrefixState`, updated one step at a time |
+| `src/calibration.py` | none, Platt, isotonic, prior shift, Platt + prior (Gap 1) |
+| `src/agent/risk.py` | One LR per checkpoint and one end-of-run LR; thresholds are probabilities, set on dev; `retarget` for a new pass rate; `explain` gives exact linear SHAP |
+| `src/agent/patterns.py` | Rule-based patterns, hints, phase belief |
+| `src/agent/governor.py` | The loop; a human gate; tool calls logged; fails open |
+| `src/agent/reroute.py` | Moves to the next logged attempt; task-level comparison of policies |
+| `src/agent/cli.py` | `models`, `replay`, `task`, and the ablation flags |
+| `src/baselines/` | Length, empty patch, prompt, telemetry LR and GBM, 7B judge |
+| `src/eval/` | Fixed splits; pooled and within-task AUROC, Brier, ECE, Wilcoxon, Best@k, task bootstrap |
 
-Every module boundary passes these models (or DataFrames whose columns are exactly their fields),
-so a stage can be swapped without touching its neighbours.
+## Decision rules
 
-## Tool interfaces
+All chosen on dev; the evidence is in `results/governor_tuning.md` and `results/feature_eval.md`.
 
-There are two senses of "tool" here:
-
-1. **Agent tools observed in traces.** The parser maps each OpenHands tool to an `action_type`:
-   `execute_bash` → `bash` (with `exit_code` parsed from `[Command finished with exit code N]`),
-   `str_replace_editor` → `view | create | edit` (by `command`), `finish` → `finish`.
-   Errors are detected from `ERROR:` editor observations, non-zero exit codes, and runtime failures.
-2. **Model/provider interface used by this system.** `src/llm/provider.py` defines an abstract
-   `LLMProvider.complete(messages, json_mode) -> str` with two implementations:
-   - `OllamaProvider`: local, default `qwen2.5-coder:7b` (fits in 6 GB VRAM at Q4)
-   - `OpenAICompatProvider`: Gemini (AI Studio), Groq or OpenRouter free tiers, with keys read from `.env`
-
-   `get_provider()` picks the backend from `LLM_PROVIDER`. The SWE-Gym verifier sits behind a
-   `Verifier` protocol (`baselines/verifier_stub.py`), so the Phase 2 Kaggle run can plug in.
-
-## Features (Phase 1)
-
-`n_steps`, `total_tokens`, `n_errors`, `n_repeated_commands`, `n_distinct_tools`,
-`n_edits_without_view`, `ran_tests`, `patch_lines` (+ `patch_files`, `patch_empty`, `finished`).
-Token counts are estimated as `chars / 4` because the dataset has no usage metadata.
-This is the Phase 1 subset of the proposal's 20-feature schema; prefix features (25/50/75%)
-come in Phase 2.
-
-## Baselines (Phase 1)
-
-| method | inputs | model |
+| Rule | Value | Why |
 |---|---|---|
-| `length_only` | `n_steps`, `total_tokens` | LogReg on log1p |
-| `prompt_only` | `TaskFeatures` (issue length, code blocks, traceback, repo one-hot), no trajectory | LogReg |
-| `telemetry_lr` | all `RunFeatures` | LogReg on log1p, standardised |
-| `telemetry_gbm` | all `RunFeatures` | sklearn HistGradientBoosting |
-| `llm_judge` | issue + condensed action log + final patch | zero-shot LLM, 50-run sample |
-| `swegym_verifier_32b` | issue + trajectory + diff | stub; scores loaded from `data/verifier_scores.parquet` in Phase 2 |
+| Abort checkpoints | 5 and 10 actions | Only those reach out-of-fold AUROC ≥ 0.60 |
+| Abort budget | 5% per checkpoint | Largest losing ≤ 10% of passing runs overall |
+| End-of-run `REJECT` budget | 10% of passing runs | Phase 1's false-alarm budget |
+| Hints | `finish_without_edit`, `repeat_loop` (4 in 8 actions) | Pass rate when fired ≤ half of when not |
+| Features | 20 at end of run and at 20, 30 actions; original set elsewhere | Adoption rule fixed before results |
 
-`prompt_only` gives every run of a task the same score, so its within-task AUROC is 0.5 by
-construction. It measures how much pooled AUROC comes from task difficulty alone.
+## Features
 
-## Evaluation protocol
+Original 11: `n_steps`, `total_tokens`, `n_errors`, `n_repeated_commands`, `n_distinct_tools`, `n_edits_without_view`, `ran_tests`, `patch_lines`, `patch_files`, `patch_empty`, `finished`.
 
-- **Splits:** 20% of tasks are a fixed held-out test set (mixed and non-mixed tasks split
-  separately), touched only for final numbers. The remaining dev tasks use `GroupKFold(n_splits=5)`
-  on `instance_id`; all tuning happens on dev. The assignment lives in `data/splits.csv`
-  (committed) and every method uses it.
-- **Pooled AUROC:** over all predictions in the evaluation set (dev out-of-fold, or test).
-- **Within-task AUROC** (arXiv 2610.05572): computed only over *mixed* tasks (those with both
-  resolved and unresolved runs). Each task's AUROC is weighted by `n_pass × n_fail`, which equals
-  the pairwise accuracy over all same-task (pass, fail) pairs. This measures whether the predictor
-  can **rank runs of the same task**, which is what best-of-n selection needs and what pooled AUROC
-  conflates with task difficulty.
-- **Calibration:** Brier score, expected calibration error over 15 equal-mass bins, reliability diagram.
-- **Evaluation sets:** dev out-of-fold (4,907 runs), held-out test (1,148 runs), and a fixed
-  50-run sample of test for the LLM judge: 25 mixed test tasks, one resolved and one unresolved
-  run each, so it is label-balanced and yields 25 same-task pairs. Every method is also scored on
-  this sample. Its ids are stored in `data/splits.csv` and `results/llm_judge_sample.json` so
-  later phases reuse the same set.
+Phase 2, 9: `last_check_passed`, `checked_after_last_edit`, `fail_then_pass`, `max_identical_streak`, `max_error_streak`, `error_responsiveness`, `first_edit_step`, `phase_entropy`, `thought_action_mismatch`.
 
-## Constraints
+Leakage rule: `test_result.report`, `test_output` and `apply_patch_output` are never features. In MoatlessTools, `report.resolved` is read only as the label, and evaluation logs are never read.
 
-Laptop: RTX 4050 (6 GB), 16 GB RAM, zero budget. The parser streams parquet row groups and
-reads only the columns it needs. The LLM judge truncates traces to a fixed character budget.
-The 32B verifier is out of scope locally and will run on Kaggle in Phase 2.
+## Log format
+
+One JSON line per agent action: `uid`, `seq`, `step`, `observed` (action, tool, path, command, error), `tool_calls` (tool, input, output, ok, error), `phase_from`, `phase_to`, `p_success`, `decision`, `reason`, `hint`, `human`. The last line is the `RunOutcome`. See `logs/sample/`.
+
+## Replay limits
+
+Logged runs can't react: `inject_hint` records `delivered: false`, so only trigger accuracy is measurable. Reroute draws on other logged attempts, so a task with one logged run can't be rerouted.
