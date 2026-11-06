@@ -1,0 +1,386 @@
+{
+ "A. Hint patterns": [
+  {
+   "pattern": "finish_without_edit",
+   "runs_fired": 0.04157326268595883,
+   "pass_rate_fired": 0.0,
+   "pass_rate_not_fired": 0.08547735487986392,
+   "failing_runs_covered": 0.045283018867924525,
+   "passing_runs_hit": 0.0,
+   "median_first_step": 6.0,
+   "hint_worthy": true
+  },
+  {
+   "pattern": "finish_unverified",
+   "runs_fired": 0.29101283880171186,
+   "pass_rate_fired": 0.1869747899159664,
+   "pass_rate_not_fired": 0.038804254096004596,
+   "failing_runs_covered": 0.2577136514983352,
+   "passing_runs_hit": 0.664179104477612,
+   "median_first_step": 18.0,
+   "hint_worthy": false
+  },
+  {
+   "pattern": "repeat_loop",
+   "runs_fired": 0.5288363562257998,
+   "pass_rate_fired": 0.03159922928709056,
+   "pass_rate_not_fired": 0.1384083044982699,
+   "failing_runs_covered": 0.5578246392896782,
+   "passing_runs_hit": 0.20398009950248755,
+   "median_first_step": 4.0,
+   "hint_worthy": true
+  },
+  {
+   "pattern": "error_streak",
+   "runs_fired": 0.11595679641328714,
+   "pass_rate_fired": 0.07908611599297012,
+   "pass_rate_not_fired": 0.08229598893499308,
+   "failing_runs_covered": 0.11631520532741399,
+   "passing_runs_hit": 0.11194029850746269,
+   "median_first_step": 15.0,
+   "hint_worthy": false
+  },
+  {
+   "pattern": "no_edit_yet",
+   "runs_fired": 0.06317505604238842,
+   "pass_rate_fired": 0.06129032258064516,
+   "pass_rate_not_fired": 0.08331520556884925,
+   "failing_runs_covered": 0.06459489456159823,
+   "passing_runs_hit": 0.0472636815920398,
+   "median_first_step": 15.0,
+   "hint_worthy": false
+  },
+  {
+   "pattern": "blind_edit",
+   "runs_fired": 0.009170572651314449,
+   "pass_rate_fired": 0.06666666666666667,
+   "pass_rate_not_fired": 0.08206499382969971,
+   "failing_runs_covered": 0.009322974472807992,
+   "passing_runs_hit": 0.007462686567164179,
+   "median_first_step": 19.0,
+   "hint_worthy": false
+  }
+ ],
+ "A2. Loop definition": [
+  {
+   "window": 8,
+   "repeats": 3,
+   "runs_fired": 0.7560627674750356,
+   "pass_rate_fired": 0.04555256064690027,
+   "pass_rate_not_fired": 0.1946532999164578,
+   "failing_runs_covered": 0.786015538290788,
+   "passing_runs_hit": 0.42039800995024873
+  },
+  {
+   "window": 8,
+   "repeats": 4,
+   "runs_fired": 0.5288363562257998,
+   "pass_rate_fired": 0.03159922928709056,
+   "pass_rate_not_fired": 0.1384083044982699,
+   "failing_runs_covered": 0.5578246392896782,
+   "passing_runs_hit": 0.20398009950248755
+  },
+  {
+   "window": 8,
+   "repeats": 5,
+   "runs_fired": 0.06480538006928876,
+   "pass_rate_fired": 0.03773584905660377,
+   "pass_rate_not_fired": 0.08498583569405099,
+   "failing_runs_covered": 0.06792452830188679,
+   "passing_runs_hit": 0.029850746268656716
+  },
+  {
+   "window": 12,
+   "repeats": 4,
+   "runs_fired": 0.5899735072345629,
+   "pass_rate_fired": 0.0386873920552677,
+   "pass_rate_not_fired": 0.1441351888667992,
+   "failing_runs_covered": 0.6177580466148723,
+   "passing_runs_hit": 0.27860696517412936
+  },
+  {
+   "window": 12,
+   "repeats": 5,
+   "runs_fired": 0.19645404524149174,
+   "pass_rate_fired": 0.05705394190871369,
+   "pass_rate_not_fired": 0.08800405782399189,
+   "failing_runs_covered": 0.20177580466148723,
+   "passing_runs_hit": 0.13681592039800994
+  },
+  {
+   "window": 12,
+   "repeats": 6,
+   "runs_fired": 0.10699001426533523,
+   "pass_rate_fired": 0.0419047619047619,
+   "pass_rate_not_fired": 0.08671839342765861,
+   "failing_runs_covered": 0.11165371809100999,
+   "passing_runs_hit": 0.05472636815920398
+  },
+  {
+   "window": 16,
+   "repeats": 6,
+   "runs_fired": 0.1614020786631343,
+   "pass_rate_fired": 0.04671717171717172,
+   "pass_rate_not_fired": 0.08869987849331713,
+   "failing_runs_covered": 0.16759156492785793,
+   "passing_runs_hit": 0.09203980099502487
+  }
+ ],
+ "B. Abort budget": [
+  {
+   "far_per_checkpoint": 0.005,
+   "checkpoints": [
+    5,
+    10
+   ],
+   "runs_aborted": 93,
+   "failures_stopped": 0.0195338512763596,
+   "passing_runs_lost": 0.012437810945273632,
+   "passes_lost_n": 5,
+   "tokens_saved": 0.01415200100530268
+  },
+  {
+   "far_per_checkpoint": 0.01,
+   "checkpoints": [
+    5,
+    10
+   ],
+   "runs_aborted": 152,
+   "failures_stopped": 0.03174250832408435,
+   "passing_runs_lost": 0.022388059701492536,
+   "passes_lost_n": 9,
+   "tokens_saved": 0.023238457319791336
+  },
+  {
+   "far_per_checkpoint": 0.025,
+   "checkpoints": [
+    5,
+    10
+   ],
+   "runs_aborted": 322,
+   "failures_stopped": 0.06792452830188679,
+   "passing_runs_lost": 0.03980099502487562,
+   "passes_lost_n": 16,
+   "tokens_saved": 0.05556117263957439
+  },
+  {
+   "far_per_checkpoint": 0.05,
+   "checkpoints": [
+    5,
+    10
+   ],
+   "runs_aborted": 557,
+   "failures_stopped": 0.11742508324084351,
+   "passing_runs_lost": 0.06965174129353234,
+   "passes_lost_n": 28,
+   "tokens_saved": 0.10497633649034724
+  },
+  {
+   "far_per_checkpoint": 0.1,
+   "checkpoints": [
+    5,
+    10
+   ],
+   "runs_aborted": 935,
+   "failures_stopped": 0.19422863485016648,
+   "passing_runs_lost": 0.14925373134328357,
+   "passes_lost_n": 60,
+   "tokens_saved": 0.1902156371553613
+  }
+ ],
+ "C. Review budget": [
+  {
+   "far": 0.05,
+   "tau": 0.03422572735256252,
+   "runs_flagged": 0.5147748114937843,
+   "failures_flagged": 0.5560488346281909,
+   "passing_flagged": 0.05223880597014925
+  },
+  {
+   "far": 0.1,
+   "tau": 0.08000184249205486,
+   "runs_flagged": 0.6323619319339718,
+   "failures_flagged": 0.6796892341842398,
+   "passing_flagged": 0.10199004975124377
+  },
+  {
+   "far": 0.2,
+   "tau": 0.11804608457302491,
+   "runs_flagged": 0.7057265131444874,
+   "failures_flagged": 0.7507214206437292,
+   "passing_flagged": 0.20149253731343283
+  }
+ ],
+ "D. Loop escape": [
+  {
+   "group": "escaped (>= 5 more actions)",
+   "runs": 1060,
+   "pass_rate": 0.059433962264150944,
+   "empty_patch": 0.07830188679245283,
+   "median_more_actions": 17.0
+  },
+  {
+   "group": "stayed stuck",
+   "runs": 1535,
+   "pass_rate": 0.012377850162866449,
+   "empty_patch": 0.8788273615635179,
+   "median_more_actions": 0.0
+  }
+ ],
+ "E. REJECT vs the empty-patch rule": [
+  {
+   "policy": "agent (ABORT + REJECT)",
+   "runs_stopped": 0.666191155492154,
+   "failures_stopped": 0.7123196448390677,
+   "passing_lost": 0.14925373134328357,
+   "reviewed": 0.3338088445078459,
+   "pass_rate_in_review": 0.2087912087912088
+  },
+  {
+   "policy": "rule: reject if patch empty",
+   "runs_stopped": 0.3929080904829835,
+   "failures_stopped": 0.42796892341842396,
+   "passing_lost": 0.0,
+   "reviewed": 0.6070919095170165,
+   "pass_rate_in_review": 0.13494461228600202
+  },
+  {
+   "policy": "share of agent's stops with an empty patch",
+   "runs_stopped": 0.5897828081982257,
+   "failures_stopped": NaN,
+   "passing_lost": NaN,
+   "reviewed": NaN,
+   "pass_rate_in_review": NaN
+  },
+  {
+   "policy": "stops among non-empty patches only",
+   "runs_stopped": 0.4501510574018127,
+   "failures_stopped": 0.4970896391152503,
+   "passing_lost": 0.14925373134328357,
+   "reviewed": NaN,
+   "pass_rate_in_review": NaN
+  }
+ ],
+ "F. Reroute, mean and std over seeds": [
+  {
+   "policy": "random_attempt",
+   "solved_mean": 0.06940170940170941,
+   "solved_std": 0.001800966453479104,
+   "tokens_per_task_mean": 14522.858974358975,
+   "tokens_per_task_std": 103.89350195807476,
+   "reviews_per_task_mean": 1.0,
+   "reviews_per_task_std": 0.0,
+   "solved_per_million_tokens_mean": 4.778658503255242,
+   "solved_per_million_tokens_std": 0.11120755614938964,
+   "solved_per_review_mean": 0.06940170940170941,
+   "solved_per_review_std": 0.001800966453479104,
+   "subset": "all_tasks",
+   "tasks": 1950
+  },
+  {
+   "policy": "review_all",
+   "solved_mean": 0.11846153846153847,
+   "solved_std": 0.0,
+   "tokens_per_task_mean": 34292.00666666667,
+   "tokens_per_task_std": 0.0,
+   "reviews_per_task_mean": 2.2497435897435896,
+   "reviews_per_task_std": 0.008748062620118898,
+   "solved_per_million_tokens_mean": 3.454494209482592,
+   "solved_per_million_tokens_std": 0.0,
+   "solved_per_review_mean": 0.05265610323867883,
+   "solved_per_review_std": 0.00020443305470830886,
+   "subset": "all_tasks",
+   "tasks": 1950
+  },
+  {
+   "policy": "governor_single",
+   "solved_mean": 0.06273504273504273,
+   "solved_std": 0.0012905699889351591,
+   "tokens_per_task_mean": 12819.806324786325,
+   "tokens_per_task_std": 83.92357472308908,
+   "reviews_per_task_mean": 0.34717948717948716,
+   "reviews_per_task_std": 0.004005256244054695,
+   "solved_per_million_tokens_mean": 4.89355011500125,
+   "solved_per_million_tokens_std": 0.09144766672264024,
+   "solved_per_review_mean": 0.18071650226637037,
+   "solved_per_review_std": 0.004361841248991997,
+   "subset": "all_tasks",
+   "tasks": 1950
+  },
+  {
+   "policy": "governor_reroute",
+   "solved_mean": 0.09196581196581198,
+   "solved_std": 0.0021350420507344928,
+   "tokens_per_task_mean": 21429.484786324785,
+   "tokens_per_task_std": 175.63978039785658,
+   "reviews_per_task_mean": 0.5230769230769231,
+   "reviews_per_task_std": 0.0,
+   "solved_per_million_tokens_mean": 4.291204338699291,
+   "solved_per_million_tokens_std": 0.06427357567813137,
+   "solved_per_review_mean": 0.1758169934640523,
+   "solved_per_review_std": 0.004081698038168889,
+   "subset": "all_tasks",
+   "tasks": 1950
+  },
+  {
+   "policy": "random_attempt",
+   "solved_mean": 0.06698784124799266,
+   "solved_std": 0.0024169887021914995,
+   "tokens_per_task_mean": 12961.560908465244,
+   "tokens_per_task_std": 139.43037083155244,
+   "reviews_per_task_mean": 1.0,
+   "reviews_per_task_std": 0.0,
+   "solved_per_million_tokens_mean": 5.167920177869678,
+   "solved_per_million_tokens_std": 0.166287919764238,
+   "solved_per_review_mean": 0.06698784124799266,
+   "solved_per_review_std": 0.0024169887021914995,
+   "subset": "multi_attempt_tasks",
+   "tasks": 1453
+  },
+  {
+   "policy": "review_all",
+   "solved_mean": 0.13282863041982107,
+   "solved_std": 0.0,
+   "tokens_per_task_mean": 39492.76393668273,
+   "tokens_per_task_std": 0.0,
+   "reviews_per_task_mean": 2.6772195457673775,
+   "reviews_per_task_std": 0.011740345567262282,
+   "solved_per_million_tokens_mean": 3.3633662772446176,
+   "solved_per_million_tokens_std": 0.0,
+   "solved_per_review_mean": 0.04961503085586827,
+   "solved_per_review_std": 0.00021719388535530523,
+   "subset": "multi_attempt_tasks",
+   "tasks": 1453
+  },
+  {
+   "policy": "governor_single",
+   "solved_mean": 0.06010552879100711,
+   "solved_std": 0.0017320106527347447,
+   "tokens_per_task_mean": 11531.768295480615,
+   "tokens_per_task_std": 112.62971143153747,
+   "reviews_per_task_mean": 0.33998623537508604,
+   "reviews_per_task_std": 0.005375257863665954,
+   "solved_per_million_tokens_mean": 5.212070201942883,
+   "solved_per_million_tokens_std": 0.1360722002413988,
+   "solved_per_review_mean": 0.17681994230241993,
+   "solved_per_review_std": 0.005950953273337739,
+   "subset": "multi_attempt_tasks",
+   "tasks": 1453
+  },
+  {
+   "policy": "governor_reroute",
+   "solved_mean": 0.09933470979582475,
+   "solved_std": 0.0028653351678818062,
+   "tokens_per_task_mean": 23086.395274145445,
+   "tokens_per_task_std": 235.7175304720035,
+   "reviews_per_task_mean": 0.5760495526496903,
+   "reviews_per_task_std": 0.0,
+   "solved_per_million_tokens_mean": 4.302195057269005,
+   "solved_per_million_tokens_std": 0.07988728856226188,
+   "solved_per_review_mean": 0.17244125846276384,
+   "solved_per_review_std": 0.004974112304578569,
+   "subset": "multi_attempt_tasks",
+   "tasks": 1453
+  }
+ ]
+}

@@ -16,3 +16,5 @@ results/llm_cache/
 .idea/
 .DS_Store
 Thumbs.db
+/logs/*
+!/logs/sample/

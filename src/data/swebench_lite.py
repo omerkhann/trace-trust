@@ -141,8 +141,9 @@ def _skill_call(code: str, current_file: Optional[str]) -> tuple[str, dict, Opti
     return "str_replace_editor", {"command": kind, "path": target, "code": code.strip()}, current_file
 
 
-def _messages_v1(events: list[dict]) -> list[dict]:
-    """agentskills runs: rebuild tool calls from action args, mapping editor helpers onto the editor tool."""
+def _messages_v1(events: list[dict], normalize: bool = True) -> list[dict]:
+    """agentskills runs: rebuild tool calls from action args, mapping editor helpers onto the editor tool.
+    normalize=False is the Gap 2 off switch: IPython cells stay raw execute_ipython_cell calls."""
     msgs = [{"role": "system", "content": SYSTEM_PROMPT}]
     current_file = None
     pending: dict[int, tuple[str, str]] = {}      # action event id -> (tool_call_id, tool name)
@@ -156,6 +157,8 @@ def _messages_v1(events: list[dict]) -> list[dict]:
                 continue
             if act == "run":
                 name, call_args = "execute_bash", {"command": args.get("command", "")}
+            elif act == "run_ipython" and not normalize:
+                name, call_args = "execute_ipython_cell", {"code": args.get("code", "")}
             elif act == "run_ipython":
                 name, call_args, current_file = _skill_call(args.get("code", ""), current_file)
             elif act == "finish":
@@ -185,11 +188,11 @@ def _messages_v1(events: list[dict]) -> list[dict]:
     return msgs
 
 
-def to_messages(record: dict) -> list[dict]:
-    """Event stream -> SWE-Gym-style chat messages (v2.x copied, v1.9 mapped)."""
+def to_messages(record: dict, normalize: bool = True) -> list[dict]:
+    """Event stream -> SWE-Gym-style chat messages (v2.x copied, v1.9 mapped unless normalize=False)."""
     events = _flatten(record.get("history") or [])
     v2 = any(e.get("tool_call_metadata") for e in events if e.get("action"))
-    return _messages_v2(events) if v2 else _messages_v1(events)
+    return _messages_v2(events) if v2 else _messages_v1(events, normalize)
 
 
 def to_trace(record: dict, run: str, msgs: Optional[list[dict]] = None) -> Trace:
@@ -203,13 +206,13 @@ def to_trace(record: dict, run: str, msgs: Optional[list[dict]] = None) -> Trace
     return trace
 
 
-def iter_lite(runs: Optional[list[str]] = None) -> Iterator[tuple[str, Trace, list[dict]]]:
+def iter_lite(runs: Optional[list[str]] = None, normalize: bool = True) -> Iterator[tuple[str, Trace, list[dict]]]:
     """-> (run name, Trace, rebuilt chat messages) for every record, streamed line by line."""
     for name in runs or RUNS:
         with path(RUNS[name][0]).open(encoding="utf-8") as f:
             for line in f:
                 rec = json.loads(line)
-                msgs = to_messages(rec)
+                msgs = to_messages(rec, normalize)
                 yield name, to_trace(rec, name, msgs), msgs
 
 

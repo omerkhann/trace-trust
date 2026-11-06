@@ -1,0 +1,238 @@
+{
+ "n_dev": 4907,
+ "by_listing": [
+  {
+   "listing": "empty",
+   "runs": 4660,
+   "pass_rate": 0.074,
+   "median_actions": 12.0,
+   "empty_patch": 0.412
+  },
+  {
+   "listing": "listed",
+   "runs": 62,
+   "pass_rate": 0.081,
+   "median_actions": 32.5,
+   "empty_patch": 0.032
+  },
+  {
+   "listing": "none",
+   "runs": 185,
+   "pass_rate": 0.286,
+   "median_actions": 23.0,
+   "empty_patch": 0.043
+  }
+ ],
+ "by_model": [
+  {
+   "model": "claude-3-5-sonnet-20241022",
+   "listing": "empty",
+   "runs": 10,
+   "pass_rate": 0.2,
+   "median_actions": 30.5,
+   "empty_patch": 0.0
+  },
+  {
+   "model": "claude-3-5-sonnet-20241022",
+   "listing": "listed",
+   "runs": 8,
+   "pass_rate": 0.25,
+   "median_actions": 42.0,
+   "empty_patch": 0.0
+  },
+  {
+   "model": "claude-3-5-sonnet-20241022",
+   "listing": "none",
+   "runs": 173,
+   "pass_rate": 0.295,
+   "median_actions": 23.0,
+   "empty_patch": 0.035
+  },
+  {
+   "model": "gpt-4o-2024-08-06",
+   "listing": "empty",
+   "runs": 4650,
+   "pass_rate": 0.074,
+   "median_actions": 12.0,
+   "empty_patch": 0.412
+  },
+  {
+   "model": "gpt-4o-2024-08-06",
+   "listing": "listed",
+   "runs": 54,
+   "pass_rate": 0.056,
+   "median_actions": 31.0,
+   "empty_patch": 0.037
+  },
+  {
+   "model": "gpt-4o-2024-08-06",
+   "listing": "none",
+   "runs": 12,
+   "pass_rate": 0.167,
+   "median_actions": 24.5,
+   "empty_patch": 0.167
+  }
+ ],
+ "by_run_config": [
+  {
+   "run_id": "claude-3-5-sonnet-20241022_maxiter_50_N_v2.1-no-hint-run_1",
+   "listing": "empty",
+   "runs": 10,
+   "pass_rate": 0.2,
+   "median_actions": 30.5,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "claude-3-5-sonnet-20241022_maxiter_50_N_v2.1-no-hint-run_1",
+   "listing": "listed",
+   "runs": 8,
+   "pass_rate": 0.25,
+   "median_actions": 42.0,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "claude-3-5-sonnet-20241022_maxiter_50_N_v2.1-no-hint-run_1",
+   "listing": "none",
+   "runs": 173,
+   "pass_rate": 0.295,
+   "median_actions": 23.0,
+   "empty_patch": 0.035
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t0-run_1",
+   "listing": "empty",
+   "runs": 192,
+   "pass_rate": 0.078,
+   "median_actions": 11.0,
+   "empty_patch": 0.484
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t02-run_1",
+   "listing": "empty",
+   "runs": 190,
+   "pass_rate": 0.053,
+   "median_actions": 8.0,
+   "empty_patch": 0.547
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t02-run_1",
+   "listing": "listed",
+   "runs": 1,
+   "pass_rate": 0.0,
+   "median_actions": 30.0,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t03-run_1",
+   "listing": "empty",
+   "runs": 191,
+   "pass_rate": 0.084,
+   "median_actions": 9.0,
+   "empty_patch": 0.513
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t03-run_1",
+   "listing": "listed",
+   "runs": 1,
+   "pass_rate": 0.0,
+   "median_actions": 30.0,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t04-run_1",
+   "listing": "empty",
+   "runs": 192,
+   "pass_rate": 0.109,
+   "median_actions": 12.0,
+   "empty_patch": 0.443
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t05-run_1",
+   "listing": "empty",
+   "runs": 190,
+   "pass_rate": 0.089,
+   "median_actions": 12.5,
+   "empty_patch": 0.395
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t05-run_1",
+   "listing": "listed",
+   "runs": 1,
+   "pass_rate": 0.0,
+   "median_actions": 27.0,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t08-run_1",
+   "listing": "empty",
+   "runs": 190,
+   "pass_rate": 0.1,
+   "median_actions": 16.0,
+   "empty_patch": 0.316
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t08-run_1",
+   "listing": "listed",
+   "runs": 1,
+   "pass_rate": 0.0,
+   "median_actions": 26.0,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_30_N_v2.1-no-hint-train-t08-run_1",
+   "listing": "none",
+   "runs": 1,
+   "pass_rate": 0.0,
+   "median_actions": 30.0,
+   "empty_patch": 1.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t0-run_1",
+   "listing": "empty",
+   "runs": 1605,
+   "pass_rate": 0.064,
+   "median_actions": 5.0,
+   "empty_patch": 0.548
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t0-run_1",
+   "listing": "listed",
+   "runs": 14,
+   "pass_rate": 0.071,
+   "median_actions": 34.5,
+   "empty_patch": 0.0
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t0-run_1",
+   "listing": "none",
+   "runs": 5,
+   "pass_rate": 0.2,
+   "median_actions": 27.0,
+   "empty_patch": 0.2
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t1-run_1",
+   "listing": "empty",
+   "runs": 1900,
+   "pass_rate": 0.074,
+   "median_actions": 17.0,
+   "empty_patch": 0.275
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t1-run_1",
+   "listing": "listed",
+   "runs": 36,
+   "pass_rate": 0.056,
+   "median_actions": 32.5,
+   "empty_patch": 0.056
+  },
+  {
+   "run_id": "gpt-4o-2024-08-06_maxiter_50_N_v2.1-no-hint-train-t1-run_1",
+   "listing": "none",
+   "runs": 6,
+   "pass_rate": 0.167,
+   "median_actions": 17.5,
+   "empty_patch": 0.0
+  }
+ ]
+}
