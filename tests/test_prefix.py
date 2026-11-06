@@ -1,6 +1,7 @@
 from src.data.parser import parse_messages
 from src.features import extract
 from src.prefix import PrefixState, prefixes
+from src.schema import PROGRESS_FEATURES
 from tests.test_features import PATCH
 from tests.test_parser import MSGS, _call
 
@@ -39,3 +40,12 @@ def test_prefixes_only_for_runs_still_going():
     fr = {p.prefix_frac: p.step for p in ps if p.checkpoint == "frac"}
     assert fr == {0.25: 3, 0.5: 6, 0.75: 9}
     assert all(p.resolved for p in ps)
+
+
+def test_full_prefix_matches_new_features():
+    tr = _trace()
+    st = PrefixState(tr.uid, tr.instance_id, tr.resolved)
+    for s in tr.steps:
+        st.update(s)
+    p, f = st.snapshot().model_dump(), extract(tr).model_dump()
+    assert {k: p[k] for k in PROGRESS_FEATURES} == {k: f[k] for k in PROGRESS_FEATURES}

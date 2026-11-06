@@ -20,7 +20,7 @@ from typing import Iterable
 import pandas as pd
 
 from src import config
-from src.features import _AGENT_ACTIONS, _TEST_RE
+from src.features import _AGENT_ACTIONS, _TEST_RE, ProgressSignals
 from src.schema import ActionType, PrefixFeatures, Role, Trace
 
 ABS_STEPS = (5, 10, 15, 20, 30, 40)
@@ -45,6 +45,7 @@ class PrefixState:
         self.viewed: set[str] = set()
         self.edited: set[str] = set()
         self.err_by_action: list[int] = []        # errors seen in each action's observations
+        self.progress = ProgressSignals()
 
     def is_action(self, s) -> bool:
         return s.role == Role.assistant and s.action_type in _AGENT_ACTIONS
@@ -58,6 +59,7 @@ class PrefixState:
         if not self.is_action(s):
             return
         self.step += 1
+        self.progress.update(s)
         self.err_by_action.append(0)
         if s.tool_name:
             self.tools.add(s.tool_name)
@@ -85,6 +87,7 @@ class PrefixState:
             n_repeated_commands=self.repeated, n_distinct_tools=len(self.tools),
             n_edits=self.edits, n_files_edited=len(self.edited), n_edits_without_view=self.blind_edits,
             steps_since_edit=self.step - self.last_edit_step, ran_tests=self.ran_tests,
+            **self.progress.snapshot(),
         )
 
 

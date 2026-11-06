@@ -24,6 +24,7 @@ from src.schema import ActionType, Role, Step, Trace
 _EXIT_RE = re.compile(r"\[Command finished with exit code (-?\d+)\]")
 _RUNTIME_ERR = ("[Error occurred in processing last action]", "Action execution failed")
 _EDIT_CMDS = {"str_replace", "insert", "undo_edit"}
+_FILE_RE = re.compile(r"[\w./-]+\.(?:py|pyi|txt|cfg|toml|md|rst|json|ya?ml|ini|sh)\b")
 TASK_CHARS = 16000
 
 
@@ -98,13 +99,14 @@ def parse_messages(messages: list[dict], *, uid: str, instance_id: str, run_id: 
                 add(role=Role.assistant, action_type=ActionType.message, tokens=estimate_tokens(content))
                 continue
             # Assistant "thought" text is charged to the first call of the turn.
+            named = sorted({f.rsplit("/", 1)[-1] for f in _FILE_RE.findall(content)})
             for i, tc in enumerate(calls):
                 fn = tc.get("function") or {}
                 tool = fn.get("name")
                 raw_args = fn.get("arguments")
                 atype, cmd, path = _classify(tool, _parse_args(raw_args))
                 sig = hashlib.md5(f"{tool}|{raw_args or ''}".encode()).hexdigest()[:12]
-                pos = add(role=Role.assistant, action_type=atype, tool_name=tool, command=cmd, path=path, args_sig=sig,
+                pos = add(role=Role.assistant, action_type=atype, tool_name=tool, command=cmd, path=path, args_sig=sig, thought_files=named,
                           tokens=estimate_tokens(raw_args) + (estimate_tokens(content) if i == 0 else 0))
                 if tc.get("id"):
                     by_call_id[tc["id"]] = pos

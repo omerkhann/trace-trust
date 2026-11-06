@@ -49,6 +49,7 @@ class Step(BaseModel):
     is_error: bool = False
     tokens: int = Field(0, ge=0)           # estimated tokens of the action text (chars/4)
     obs_tokens: int = Field(0, ge=0)       # estimated tokens of the observation
+    thought_files: list[str] = []          # file names mentioned in the assistant's text for this turn
 
 
 class Trace(BaseModel):
@@ -66,6 +67,11 @@ class Trace(BaseModel):
         return sum(s.role == Role.assistant for s in self.steps)
 
 
+PROGRESS_FEATURES = ("last_check_passed", "checked_after_last_edit", "fail_then_pass", "max_identical_streak",
+                     "max_error_streak", "error_responsiveness", "first_edit_step", "phase_entropy",
+                     "thought_action_mismatch")
+
+
 class RunFeatures(BaseModel):
     uid: str
     instance_id: str
@@ -81,9 +87,24 @@ class RunFeatures(BaseModel):
     patch_files: int
     patch_empty: bool
     finished: bool                # agent called `finish` (vs. hitting iteration cap)
+    # Added in Phase 2, see features.ProgressSignals. Live signals, so PrefixFeatures has them too.
+    last_check_passed: bool = False       # last test/script run exited 0 (False if none, or exit code unknown)
+    checked_after_last_edit: bool = False
+    fail_then_pass: bool = False          # a check failed, and a later check passed
+    max_identical_streak: int = 0         # longest run of the exact same action
+    max_error_streak: int = 0             # longest run of failing actions
+    error_responsiveness: float = 1.0     # share of errors followed by a different action (1 if no errors)
+    first_edit_step: int = 0              # action of the first edit (= actions so far if none yet)
+    phase_entropy: float = 0.0            # bits, over explore/locate/reproduce/fix/verify/submit
+    thought_action_mismatch: float = 0.0  # share of file actions whose path isn't among the files the text names
 
     @classmethod
     def feature_names(cls) -> list[str]:
+        """The Phase 1 feature set. Reported baselines use this, so their results stay reproducible."""
+        return [f for f in cls.extended_feature_names() if f not in PROGRESS_FEATURES]
+
+    @classmethod
+    def extended_feature_names(cls) -> list[str]:
         return [f for f in cls.model_fields if f not in {"uid", "instance_id", "resolved"}]
 
 
@@ -107,11 +128,80 @@ class PrefixFeatures(BaseModel):
     n_edits_without_view: int
     steps_since_edit: int         # actions since the last edit (= step if none yet)
     ran_tests: bool
+    last_check_passed: bool = False
+    checked_after_last_edit: bool = False
+    fail_then_pass: bool = False
+    max_identical_streak: int = 0
+    max_error_streak: int = 0
+    error_responsiveness: float = 1.0
+    first_edit_step: int = 0
+    phase_entropy: float = 0.0
+    thought_action_mismatch: float = 0.0
 
     @classmethod
     def feature_names(cls) -> list[str]:
+        return [f for f in cls.extended_feature_names() if f not in PROGRESS_FEATURES]
+
+    @classmethod
+    def extended_feature_names(cls) -> list[str]:
         return [f for f in cls.model_fields
                 if f not in {"uid", "instance_id", "resolved", "checkpoint", "prefix_frac"}]
+
+
+class Decision(str, Enum):
+    """What the governance agent does at a step of a run it is watching."""
+    continue_ = "CONTINUE"
+    inject_hint = "INJECT_HINT"          # send the agent a rule-based reflection hint
+    abort = "ABORT"                      # stop the run; its budget can go to a fresh attempt
+    reject = "REJECT"                    # run finished but looks failed: no reviewer time, try again
+    flag_for_review = "FLAG_FOR_REVIEW"  # run finished and passes the trust gate: a human reviews it
+    human_stop = "HUMAN_STOP"            # a human stopped the replay
+
+
+class ToolCall(BaseModel):
+    """One tool the governance agent used, with its input and output, as logged."""
+    tool: str
+    input: dict = {}
+    output: Optional[dict] = None
+    ok: bool = True
+    error: Optional[str] = None
+
+
+class GovernorEvent(BaseModel):
+    """One logged step of the governance agent: what it saw, what it called, what it decided."""
+    uid: str
+    seq: int                              # event number within the run
+    step: int                             # agent actions completed so far
+    observed: dict = {}                   # the agent action being looked at (empty at end-of-run triage)
+    tool_calls: list[ToolCall] = []
+    phase_from: str = ""
+    phase_to: str = ""
+    p_success: Optional[float] = None     # latest calibrated p(resolved), if any
+    decision: Decision
+    reason: str = ""
+    hint: Optional[str] = None
+    human: Optional[str] = None           # approve / override / stop, when a human was asked
+
+
+class RunOutcome(BaseModel):
+    """How one replayed run ended under the governance agent. `resolved` is copied in only after
+    the replay finishes, for scoring; the agent never reads it."""
+    uid: str
+    instance_id: str
+    config: str                           # ablation name, e.g. "full" or "no_calibration"
+    final_decision: Decision
+    steps_seen: int
+    steps_total: int
+    tokens_used: int
+    tokens_total: int
+    hints: list[dict] = []                # {"step": int, "pattern": str}
+    patterns_seen: list[str] = []
+    trust_curve: list[dict] = []          # {"step": int, "p_success": float}
+    p_final: Optional[float] = None
+    abort_step: Optional[int] = None
+    human_overrides: int = 0
+    degraded_calls: int = 0               # tool calls that failed; the agent fails open
+    resolved: Optional[bool] = None
 
 
 class TaskFeatures(BaseModel):

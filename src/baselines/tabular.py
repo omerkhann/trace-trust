@@ -6,6 +6,7 @@
   prompt_only     LogReg on issue features + repo one-hot           (B.10 baseline 3, task difficulty)
   telemetry_lr    LogReg on all RunFeatures (log1p, standardised)   (proposed, Phase 1 subset)
   telemetry_gbm   HistGradientBoosting on all RunFeatures           (proposed, Phase 1 subset)
+  telemetry20_lr / telemetry20_gbm   the same on the 20 extended features (Phase 2)
 
 All use the split and fold columns from data/splits.csv, so every method sees the same splits.
 Model factories take a seed; results are reported as mean ± std over config.SEEDS.
@@ -46,12 +47,15 @@ def _gbm(cols: list[str]) -> Callable[[int], Pipeline]:
 
 
 TELEMETRY = RunFeatures.feature_names()
+TELEMETRY20 = RunFeatures.extended_feature_names()
 METHODS: dict[str, tuple[Callable[[int], Pipeline], list[str]]] = {
     "length_only": (_logreg(["n_steps", "total_tokens"]), ["n_steps", "total_tokens"]),
     "empty_patch": (_logreg(["patch_empty"]), ["patch_empty"]),
     "prompt_only": (_logreg(TaskFeatures.numeric_names(), ["repo"]), TaskFeatures.numeric_names() + ["repo"]),
     "telemetry_lr": (_logreg(TELEMETRY), TELEMETRY),
     "telemetry_gbm": (_gbm(TELEMETRY), TELEMETRY),
+    "telemetry20_lr": (_logreg(TELEMETRY20), TELEMETRY20),
+    "telemetry20_gbm": (_gbm(TELEMETRY20), TELEMETRY20),
 }
 
 
