@@ -35,6 +35,7 @@ Pydantic models in `src/schema.py` cross every module boundary.
 | `src/agent/governor.py` | The loop; a human gate; tool calls logged; fails open |
 | `src/agent/reroute.py` | Moves to the next logged attempt; task-level comparison of policies |
 | `src/agent/cli.py` | `models`, `replay`, `task`, and the ablation flags |
+| `src/app/` | Streamlit viewer: steps the unchanged `Governor` through a logged run with a human gate (`replay.py`); saved logs and results (`data.py`) |
 | `src/baselines/` | Length, empty patch, prompt, telemetry LR and GBM, 7B judge |
 | `src/eval/` | Fixed splits; pooled and within-task AUROC, Brier, ECE, Wilcoxon, Best@k, task bootstrap |
 

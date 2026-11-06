@@ -84,6 +84,13 @@ Each entry: what failed or was limiting, what changed, and the measured effect. 
 - **Change:** committed the scores and judge cache; added `moatless.download()`.
 - **Effect:** every reported number can now be rebuilt from the repository.
 
+## 2026-11-07: The viewer showed only finished runs
+
+- **Limitation:** the first viewer browsed saved results, so it never showed the agent working.
+- **Change:** a Replay tab that advances the unchanged `Governor` one action at a time, with a person answering each `ABORT` and `REJECT`. A generator can't wait for a click, so each answer reruns the replay with the answers so far.
+- **Bug found:** at the question, the page showed the previous score, not the one being asked about. Fixed, with a test.
+- **Effect:** approving every question rebuilds the 6 saved test logs event for event, so the viewer runs the same agent as E3. Effect on a run's outcome is still unmeasured, because logged runs can't react.
+
 ## Things that didn't help
 
 | Tried | Result |

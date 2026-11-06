@@ -62,7 +62,7 @@ Python 3.11, on Windows (paths shown) or Linux/macOS (use `.venv/bin/python`). N
 ```bash
 uv venv --python 3.11
 uv pip install --python .venv -r requirements.txt
-.venv/Scripts/python -m pytest -q                        # 68 tests
+.venv/Scripts/python -m pytest -q                        # 92 tests
 ```
 
 The first command that needs data downloads it from Hugging Face. `data/` is gitignored, except `splits.csv` (fixed splits), `verifier_scores_lite.csv`
@@ -78,6 +78,15 @@ The first command that needs data downloads it from Hugging Face. `data/` is git
 ```
 
 Logs go to `logs/<config>/<run>.jsonl`, one line per action. A sample is committed in [logs/sample/](logs/sample/).
+
+To watch the agent and browse its results in a browser, run the viewer from the repository root:
+
+```bash
+.venv/Scripts/streamlit run src/app/viewer.py
+```
+
+- **Replay:** the real locked agent works through a logged test run one action at a time. You can approve, overrule or stop each `ABORT` and `REJECT`, and the real result appears only at the end. This needs the data and feature steps above. Without them, the tab steps through a saved log and says so. It is a replay, not a live monitor: the logged run can't react. Nothing it does is saved.
+- **Runs, Results, Failures:** read saved files only, so they need no download. Runs shows the 8 committed sample runs, or all E3 runs once `experiments.governor_eval` has been run.
 
 ## Reproduce each experiment
 
@@ -101,8 +110,29 @@ Data volumes: SWE-Gym 300 MB, OpenHands Lite 430 MB, MoatlessTools 440 MB. Seeds
 Run `.venv/Scripts/python`, not bare `python`. Timing numbers in `efficiency.*` vary by machine; everything else should match exactly.
 
 **Evaluation rules.** All tuning uses dev: 80% of SWE-Gym tasks, with `GroupKFold` by task. The test set (20% of tasks, 488 tasks, 1,148 runs) is fixed in `data/splits.csv`.
-The agent was locked at commit `4a3b1a6` before it ever ran on test, and E3/E5 ran once. SWE-bench Lite and MoatlessTools are never tuned on; a small number of labelled Lite
+The agent was locked at commit `4a3b1a6` before it ever ran on test, and E3/E5 ran once. One change was made afterwards: the end-of-run tool also logs its top-3 factors (`explain`, committed in `44d7b10`). It adds log output only, and a re-run on test gave identical decisions and tokens for all 1,148 runs. SWE-bench Lite and MoatlessTools are never tuned on; a small number of labelled Lite
 tasks may set the pass rate where stated. Features never include `test_result.report`, `test_output` or `apply_patch_output`, which contain the label.
+
+### Models and settings
+
+Models we ran:
+
+| Role | Model | Settings | Prompt or input |
+|---|---|---|---|
+| Governance agent and `telemetry_lr`, `telemetry20_lr` | scikit-learn `LogisticRegression` (no LLM) | `C=1.0`, `max_iter=2000`, features `log1p` and standardized; agent scores use Platt + prior calibration | Features only |
+| `telemetry_gbm`, `telemetry20_gbm` | scikit-learn `HistGradientBoostingClassifier` | `max_iter=200`, `learning_rate=0.05`, `max_leaf_nodes=15`, `l2_regularization=1.0` | Features only |
+| 7B judge | `qwen2.5-coder:7b` through Ollama (4-bit Q4_K_M), RTX 4050 | Temperature 0, `num_ctx=8192`, JSON output, 50 runs | `SYSTEM` and `render()` in [src/baselines/llm_judge.py](src/baselines/llm_judge.py) |
+| 32B verifier (base paper) | `SWE-Gym/OpenHands-32B-Verifier`, as `OpenHands-32B-Verifier.Q4_K_M.gguf` from `mradermacher/OpenHands-32B-Verifier-GGUF`; llama-cpp-python 0.3.36, Kaggle 2 x T4 | No sampling: the score is p(YES) from the next-token logits, renormalized over YES and NO. `n_ctx=32768`, `n_batch=512`, 8-bit KV cache, flash attention | Answer prefilled to `<judgement>`; training format rebuilt in [experiments/verifier_prompts.py](experiments/verifier_prompts.py), scoring in [experiments/kaggle_verifier.ipynb](experiments/kaggle_verifier.ipynb) |
+
+Agents being observed (already logged, not run by us; model names as recorded in each release):
+
+| Data | Models | Settings given by the release |
+|---|---|---|
+| SWE-Gym OpenHands | `gpt-4o-2024-08-06` (5,826 runs), `claude-3-5-sonnet-20241022` (229 runs) | Not used by this project |
+| OpenHands Lite | `claude-3-5-sonnet-20241022` (scaffold v1.9, v2.1, v2.2), `gpt-4o-2024-05-13` (v1.9) | Max 30 iterations for v1.9, 100 for v2.1 and v2.2 |
+| MoatlessTools Lite | SWE-Gym fine-tunes of Qwen2.5-Coder: `32b_8runs` (32B), `32b_zero` (32B), `7b_zero` (7B) | Temperature 0.5 for `32b_8runs`, 0.0 for the others |
+
+Seeds: 42 for splits, the judge sample and the bootstrap; 42, 43, 44 for models and few-shot draws. Deterministic models give the same result on every seed, so the bootstrap carries the uncertainty.
 
 ## Results
 
@@ -237,7 +267,7 @@ Wrong decisions on test ([failure_analysis.md](results/failure_analysis.md)); re
 - `ABORT_AND_REROUTE` became `ABORT` plus a separate reroute step. `REJECT` and `FLAG_FOR_REVIEW` were added, because auto-accepting at an 8% pass rate would pass mostly failures.
 - Thresholds use a false-alarm budget on dev. The token-budget utility function and conformal thresholds were not built.
 - Hints are fixed text from 2 of 6 candidate patterns, kept by a dev rule. Hint windows like t ≤ 12 were not used.
-- The Streamlit dashboard (optional) was not built.
+- The Streamlit dashboard (optional) became a viewer that steps the locked agent through logged runs, with a human gate, and browses saved results. It isn't a live monitor, because the agent runs in replay.
 
 **Methods**
 - 20 features as promised, but not the exact list: tokens per step, step variance, phase proportions, 4-gram loops and rollback count were replaced by `phase_entropy`, `max_identical_streak` and others. No scaffold-specific `AgentStepSpan` type: `Step` and `Trace` play that role.
@@ -260,6 +290,7 @@ Wrong decisions on test ([failure_analysis.md](results/failure_analysis.md)); re
 | Path | Contents |
 |---|---|
 | [src/agent/](src/agent/) | Governor loop, risk models, patterns and hints, reroute, CLI |
+| [src/app/](src/app/) | Streamlit viewer: step-by-step replay and saved results |
 | [src/data/](src/data/) | Loaders and adapters: SWE-Gym, SWE-bench Lite, MoatlessTools |
 | [src/](src/) | `schema.py` contracts, `features.py`, `prefix.py`, `calibration.py`, `baselines/`, `eval/`, `llm/` |
 | [experiments/](experiments/) | One script per experiment |
