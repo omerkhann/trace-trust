@@ -1,0 +1,48 @@
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[server]
+enableStaticServing = true
+
+[theme]
+base = "light"
+primaryColor = "#2a78d6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f6f6f4"
+textColor = "#1a1a1a"
+borderColor = "#e4e3df"
+showWidgetBorder = true
+baseRadius = "small"
+baseFontSize = 15
+font = "IBM Plex Sans, sans-serif"
+headingFont = "Source Serif, serif"
+headingFontSizes = ["2rem", "1.45rem", "1.2rem"]
+codeFont = "IBM Plex Mono, monospace"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/IBMPlexSans-400.woff2"
+weight = 400
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/IBMPlexSans-500.woff2"
+weight = 500
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/IBMPlexSans-600.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/IBMPlexMono-400.woff2"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Source Serif"
+url = "app/static/SourceSerif4-600.woff2"
+weight = 600
