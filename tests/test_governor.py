@@ -170,6 +170,16 @@ def test_normalizer_switch_changes_tool_names():
     assert (on, off) == ("str_replace_editor", "execute_ipython_cell")
 
 
+def test_explain_names_the_top_factors_and_is_safe_on_other_models():
+    from src.baselines.tabular import _logreg
+    X = pd.DataFrame({"a": [0.0, 1.0, 2.0, 3.0], "b": [1.0, 1.0, 2.0, 2.0]})
+    pipe = _logreg(["a", "b"])(0).fit(X, [False, False, True, True])
+    m = ScoredModel(model=pipe, calibrator=Calibrator("none"), cols=["a", "b"], tau=0.1, dev_auroc=0.7, n_dev=4)
+    top = m.explain({"a": 3.0, "b": 2.0}, k=1)
+    assert len(top) == 1 and top[0]["feature"] in ("a", "b") and top[0]["effect"] > 0
+    assert _scored(0.5, 0.1, ["step"]).explain({"step": 1}) == []      # a stub model has no coefficients
+
+
 def test_float_features_are_not_truncated():
     seen = {}
 

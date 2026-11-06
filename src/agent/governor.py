@@ -161,8 +161,11 @@ class Governor:
         # 4. end-of-run triage: only now is the final patch available
         calls, human = [], None
         m = self.models.final
-        out = self._tool(calls, "score_final_risk", {"step": st.step},
-                         lambda: dict(zip(("p_raw", "p_success"), m.score(extract(trace).model_dump()))))
+        def score_final() -> dict:
+            row = extract(trace).model_dump()
+            raw, cal = m.score(row)
+            return {"p_raw": raw, "p_success": cal, "top_factors": m.explain(row)}
+        out = self._tool(calls, "score_final_risk", {"step": st.step}, score_final)
         if out is None:
             degraded += 1
             decision, reason, p_final = Decision.flag_for_review, "final scoring failed; sent to a human", None

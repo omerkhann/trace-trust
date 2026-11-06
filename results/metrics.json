@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-04",
+ "generated": "2026-11-06",
  "dataset": {
   "rows": 6055,
   "unique_run_configs": 9,
@@ -282,6 +282,98 @@
    ]
   },
   {
+   "method": "telemetry20_lr",
+   "eval_set": "dev",
+   "n_runs": 4907,
+   "pooled_auroc": 0.851804241831906,
+   "within_task_auroc": 0.8682235195996664,
+   "n_mixed_tasks": 150,
+   "n_pairs": 1199,
+   "brier": 0.06466493989584259,
+   "ece": 0.007193732017440881,
+   "base_rate": 0.08192378235174241,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 1.0622968402425924e-18,
+   "pooled_auroc_ci": [
+    0.829730393929407,
+    0.8712825793200142
+   ],
+   "within_task_auroc_ci": [
+    0.8262225377507325,
+    0.9032067904291312
+   ],
+   "auroc_gap_ci": [
+    -0.04928165388182829,
+    0.02424197538326126
+   ],
+   "within_task_wilcoxon_p": 1.0569326600922373e-16,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 1453,
+     "best": 0.09223063393744743,
+     "pass": 0.10550967347250897,
+     "random": 0.06984017741072113
+    },
+    {
+     "k": 4,
+     "n_tasks": 192,
+     "best": 0.2081266534391535,
+     "pass": 0.2590608465608466,
+     "random": 0.10665509259259259
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_gbm",
+   "eval_set": "dev",
+   "n_runs": 4907,
+   "pooled_auroc": 0.8544850663441946,
+   "within_task_auroc": 0.8690575479566305,
+   "n_mixed_tasks": 150,
+   "n_pairs": 1199,
+   "brier": 0.06497337652056992,
+   "ece": 0.02433223024753435,
+   "base_rate": 0.08192378235174241,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.8361957386596965,
+    0.8724250327639034
+   ],
+   "within_task_auroc_ci": [
+    0.8208523523516337,
+    0.9081727298339526
+   ],
+   "auroc_gap_ci": [
+    -0.050976357130277095,
+    0.029441172795077214
+   ],
+   "within_task_wilcoxon_p": 3.717932480634404e-18,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 1453,
+     "best": 0.09356121434579795,
+     "pass": 0.10550967347250897,
+     "random": 0.06984017741072113
+    },
+    {
+     "k": 4,
+     "n_tasks": 192,
+     "best": 0.20889550264550263,
+     "pass": 0.2590608465608466,
+     "random": 0.10665509259259259
+    }
+   ]
+  },
+  {
    "method": "length_only",
    "eval_set": "test",
    "n_runs": 1148,
@@ -506,6 +598,98 @@
      "k": 4,
      "n_tasks": 38,
      "best": 0.11265664160401002,
+     "pass": 0.18458646616541355,
+     "random": 0.06578947368421052
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_lr",
+   "eval_set": "test",
+   "n_runs": 1148,
+   "pooled_auroc": 0.8358638104635494,
+   "within_task_auroc": 0.7794871794871795,
+   "n_mixed_tasks": 38,
+   "n_pairs": 195,
+   "brier": 0.06381082782662235,
+   "ece": 0.014404717929694194,
+   "base_rate": 0.07752613240418119,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.796106796462779,
+    0.8779385049384986
+   ],
+   "within_task_auroc_ci": [
+    0.6810721263432107,
+    0.8638991085326163
+   ],
+   "auroc_gap_ci": [
+    -0.010612542763465132,
+    0.1533160020536409
+   ],
+   "within_task_wilcoxon_p": 4.144610684530942e-06,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 362,
+     "best": 0.10908532842234499,
+     "pass": 0.11982811540822591,
+     "random": 0.0787292817679558
+    },
+    {
+     "k": 4,
+     "n_tasks": 38,
+     "best": 0.11654135338345865,
+     "pass": 0.18458646616541355,
+     "random": 0.06578947368421052
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_gbm",
+   "eval_set": "test",
+   "n_runs": 1148,
+   "pooled_auroc": 0.8354288018164263,
+   "within_task_auroc": 0.7487179487179487,
+   "n_mixed_tasks": 38,
+   "n_pairs": 195,
+   "brier": 0.06955170317273804,
+   "ece": 0.030964956991732948,
+   "base_rate": 0.07752613240418119,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.8009013879669894,
+    0.8748032439229512
+   ],
+   "within_task_auroc_ci": [
+    0.619554805528769,
+    0.856606726682813
+   ],
+   "auroc_gap_ci": [
+    -0.003298938638039855,
+    0.2167733356692156
+   ],
+   "within_task_wilcoxon_p": 7.550496659028261e-06,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 362,
+     "best": 0.1087170042971148,
+     "pass": 0.11982811540822591,
+     "random": 0.0787292817679558
+    },
+    {
+     "k": 4,
+     "n_tasks": 38,
+     "best": 0.1075187969924812,
      "pass": 0.18458646616541355,
      "random": 0.06578947368421052
     }
@@ -742,6 +926,98 @@
    ]
   },
   {
+   "method": "telemetry20_lr",
+   "eval_set": "test_gpt4o_only",
+   "n_runs": 1110,
+   "pooled_auroc": 0.8314077016884375,
+   "within_task_auroc": 0.79,
+   "n_mixed_tasks": 31,
+   "n_pairs": 100,
+   "brier": 0.05892919032394723,
+   "ece": 0.018657172465100274,
+   "base_rate": 0.06936936936936937,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.7885581109482744,
+    0.8770552515740364
+   ],
+   "within_task_auroc_ci": [
+    0.7155635648754916,
+    0.8947564807541241
+   ],
+   "auroc_gap_ci": [
+    -0.04854835931500176,
+    0.12013071225121695
+   ],
+   "within_task_wilcoxon_p": 2.0155147922583585e-05,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 362,
+     "best": 0.10489564149785144,
+     "pass": 0.11456414978514426,
+     "random": 0.0758133824432167
+    },
+    {
+     "k": 4,
+     "n_tasks": 38,
+     "best": 0.05868838763575606,
+     "pass": 0.09711779448621553,
+     "random": 0.038011695906432746
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_gbm",
+   "eval_set": "test_gpt4o_only",
+   "n_runs": 1110,
+   "pooled_auroc": 0.836813718711105,
+   "within_task_auroc": 0.79,
+   "n_mixed_tasks": 31,
+   "n_pairs": 100,
+   "brier": 0.0633967689726796,
+   "ece": 0.02746045298240596,
+   "base_rate": 0.06936936936936937,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.7981170762015473,
+    0.8777034798772008
+   ],
+   "within_task_auroc_ci": [
+    0.6956418219461697,
+    0.8983112257430607
+   ],
+   "auroc_gap_ci": [
+    -0.04804014451747873,
+    0.13635092813707586
+   ],
+   "within_task_wilcoxon_p": 2.362987464483612e-05,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 362,
+     "best": 0.10489564149785144,
+     "pass": 0.11456414978514426,
+     "random": 0.0758133824432167
+    },
+    {
+     "k": 4,
+     "n_tasks": 38,
+     "best": 0.053467000835421885,
+     "pass": 0.09711779448621553,
+     "random": 0.038011695906432746
+    }
+   ]
+  },
+  {
    "method": "length_only",
    "eval_set": "test_nonempty_patch",
    "n_runs": 696,
@@ -972,6 +1248,98 @@
    ]
   },
   {
+   "method": "telemetry20_lr",
+   "eval_set": "test_nonempty_patch",
+   "n_runs": 696,
+   "pooled_auroc": 0.7136404864594711,
+   "within_task_auroc": 0.6293103448275862,
+   "n_mixed_tasks": 24,
+   "n_pairs": 116,
+   "brier": 0.10525071252322699,
+   "ece": 0.04183391678013295,
+   "base_rate": 0.1278735632183908,
+   "n_seeds": 3,
+   "pooled_auroc_std": 1.3597399555105182e-16,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 8.498374721940739e-18,
+   "pooled_auroc_ci": [
+    0.6470865583864323,
+    0.7760512814079285
+   ],
+   "within_task_auroc_ci": [
+    0.4999183006535948,
+    0.7534323246779799
+   ],
+   "auroc_gap_ci": [
+    -0.022182072671649327,
+    0.2319165211097604
+   ],
+   "within_task_wilcoxon_p": 0.0100416852029573,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 162,
+     "best": 0.17010092102684693,
+     "pass": 0.1978395061728395,
+     "random": 0.14218106995884774
+    },
+    {
+     "k": 4,
+     "n_tasks": 26,
+     "best": 0.15836385836385836,
+     "pass": 0.2885225885225885,
+     "random": 0.11666666666666667
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_gbm",
+   "eval_set": "test_nonempty_patch",
+   "n_runs": 696,
+   "pooled_auroc": 0.7129000610850934,
+   "within_task_auroc": 0.5775862068965517,
+   "n_mixed_tasks": 24,
+   "n_pairs": 116,
+   "brier": 0.11471990702431938,
+   "ece": 0.056648666034126736,
+   "base_rate": 0.1278735632183908,
+   "n_seeds": 3,
+   "pooled_auroc_std": 0.0,
+   "within_task_auroc_std": 0.0,
+   "brier_std": 0.0,
+   "ece_std": 8.498374721940739e-18,
+   "pooled_auroc_ci": [
+    0.6550005449594265,
+    0.7705133200700365
+   ],
+   "within_task_auroc_ci": [
+    0.3888605442176871,
+    0.7500456204379562
+   ],
+   "auroc_gap_ci": [
+    -0.021208925734522693,
+    0.32209881136638785
+   ],
+   "within_task_wilcoxon_p": 0.03434991675886904,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 162,
+     "best": 0.16820007838526355,
+     "pass": 0.1978395061728395,
+     "random": 0.14218106995884774
+    },
+    {
+     "k": 4,
+     "n_tasks": 26,
+     "best": 0.12338217338217339,
+     "pass": 0.2885225885225885,
+     "random": 0.11666666666666667
+    }
+   ]
+  },
+  {
    "method": "length_only",
    "eval_set": "judge_sample",
    "n_runs": 50,
@@ -1189,6 +1557,98 @@
      "k": 2,
      "n_tasks": 25,
      "best": 0.76,
+     "pass": 1.0,
+     "random": 0.5
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_lr",
+   "eval_set": "judge_sample",
+   "n_runs": 50,
+   "pooled_auroc": 0.8080000000000002,
+   "within_task_auroc": 0.8000000000000002,
+   "n_mixed_tasks": 25,
+   "n_pairs": 25,
+   "brier": 0.3596235065777644,
+   "ece": 0.38720679157659826,
+   "base_rate": 0.5,
+   "n_seeds": 3,
+   "pooled_auroc_std": 1.3597399555105182e-16,
+   "within_task_auroc_std": 1.3597399555105182e-16,
+   "brier_std": 6.798699777552591e-17,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.6624,
+    0.928
+   ],
+   "within_task_auroc_ci": [
+    0.64,
+    0.96
+   ],
+   "auroc_gap_ci": [
+    -0.08479999999999999,
+    0.10239999999999994
+   ],
+   "within_task_wilcoxon_p": 0.001349898031630093,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 25,
+     "best": 0.8,
+     "pass": 1.0,
+     "random": 0.5
+    },
+    {
+     "k": 4,
+     "n_tasks": 0,
+     "best": null,
+     "pass": null,
+     "random": null
+    }
+   ]
+  },
+  {
+   "method": "telemetry20_gbm",
+   "eval_set": "judge_sample",
+   "n_runs": 50,
+   "pooled_auroc": 0.8447999999999999,
+   "within_task_auroc": 0.8000000000000002,
+   "n_mixed_tasks": 25,
+   "n_pairs": 25,
+   "brier": 0.340653694774641,
+   "ece": 0.3776298401347961,
+   "base_rate": 0.5,
+   "n_seeds": 3,
+   "pooled_auroc_std": 1.3597399555105182e-16,
+   "within_task_auroc_std": 1.3597399555105182e-16,
+   "brier_std": 0.0,
+   "ece_std": 0.0,
+   "pooled_auroc_ci": [
+    0.7247600000000001,
+    0.9408399999999999
+   ],
+   "within_task_auroc_ci": [
+    0.64,
+    0.92
+   ],
+   "auroc_gap_ci": [
+    -0.0464,
+    0.14403999999999997
+   ],
+   "within_task_wilcoxon_p": 0.001349898031630093,
+   "best_at_k": [
+    {
+     "k": 2,
+     "n_tasks": 25,
+     "best": 0.8,
      "pass": 1.0,
      "random": 0.5
     },

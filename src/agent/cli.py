@@ -84,6 +84,9 @@ def print_event(e: GovernorEvent) -> None:
     risk = f"p={e.p_success:.3f}" if e.p_success is not None else "p=  -  "
     print(f"{e.step:>4} {e.phase_to or '-':<9} {risk} {e.decision.value:<15} "
           f"{e.observed.get('action', ''):<7} {str(what).splitlines()[0][:60] if what else ''}")
+    for c in e.tool_calls:
+        if c.tool == "score_final_risk" and c.output and c.output.get("top_factors"):
+            print("     top factors: " + ", ".join(f"{f['feature']} {f['effect']:+.2f}" for f in c.output["top_factors"]))
     if e.reason:
         print(f"     -> {e.reason}")
     if e.hint:

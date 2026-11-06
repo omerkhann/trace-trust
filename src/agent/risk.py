@@ -65,6 +65,17 @@ class ScoredModel:
         raw = float(self.model.predict_proba(X)[0, 1])
         return raw, float(self.calibrator.transform(np.array([raw]))[0])
 
+    def explain(self, row: dict, k: int = 3) -> list[dict]:
+        """Exact linear SHAP: the k features pushing this run's log-odds most, relative to an average dev
+        run. Negative effect = lowers p(resolved). Only for the logistic pipelines; [] otherwise."""
+        try:
+            X = pd.DataFrame([{c: float(row[c]) for c in self.cols}])
+            phi = self.model[0].transform(X)[0] * self.model[-1].coef_[0]
+        except (TypeError, AttributeError, IndexError, KeyError):
+            return []
+        top = np.argsort(-np.abs(phi))[:k]
+        return [{"feature": self.cols[i], "value": float(row[self.cols[i]]), "effect": round(float(phi[i]), 3)} for i in top]
+
 
 def _X(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     return df[cols].astype({c: int for c in cols if df[c].dtype == bool})
