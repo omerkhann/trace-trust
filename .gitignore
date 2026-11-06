@@ -18,3 +18,5 @@ results/llm_cache/
 Thumbs.db
 /logs/*
 !/logs/sample/
+!/data/verifier_scores_lite.csv
+!/data/llm_judge_cache.jsonl
